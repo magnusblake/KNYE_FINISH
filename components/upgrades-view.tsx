@@ -13,12 +13,11 @@ import {
   PaletteIcon,
   BatteryIcon,
   CoffeeIcon,
-  StudioIcon,
-  TrophyIcon,
-  GlobeIcon,
-  HeadphonesIcon,
   Radio,
   Music,
+  Trophy,
+  Globe,
+  Headphones,
   Sparkles,
   FolderClosed,
   Tag
@@ -47,12 +46,6 @@ interface UpgradeItemProps {
   locked?: boolean
   tabColor?: string
 }
-
-// Add missing Lucide icons that aren't in the import
-const StudioIcon = Music
-const TrophyIcon = Trophy
-const GlobeIcon = Globe
-const HeadphonesIcon = Headphones
 
 function UpgradeItem({
   id,
@@ -184,9 +177,9 @@ export function UpgradesView({ gameState }: UpgradesViewProps) {
       ) : upgrade.name === "Designer Shoes" ? (
         <ShirtIcon className="w-6 h-6" />
       ) : upgrade.name === "Studio Time" ? (
-        <StudioIcon className="w-6 h-6" />
+        <Music className="w-6 h-6" />
       ) : upgrade.name === "Platinum Status" ? (
-        <TrophyIcon className="w-6 h-6" />
+        <Trophy className="w-6 h-6" />
       ) : (
         <PaletteIcon className="w-6 h-6" />
       ),
@@ -225,9 +218,9 @@ export function UpgradesView({ gameState }: UpgradesViewProps) {
       ) : upgrade.name === "Power Nap" ? (
         <BatteryIcon className="w-6 h-6" />
       ) : upgrade.name === "Music Festival" ? (
-        <HeadphonesIcon className="w-6 h-6" />
+        <Headphones className="w-6 h-6" />
       ) : upgrade.name === "World Tour" ? (
-        <GlobeIcon className="w-6 h-6" />
+        <Globe className="w-6 h-6" />
       ) : (
         <Radio className="w-6 h-6" />
       ),

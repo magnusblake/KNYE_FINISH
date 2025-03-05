@@ -13,60 +13,97 @@ import { Leaderboard } from "@/components/leaderboard"
 import { StatsView } from "@/components/stats-view"
 import { motion, AnimatePresence } from "framer-motion"
 import { GuessAlbumGame } from "@/components/guess-album-game"
-import { Coins, Disc3, Globe, BellIcon as BrandTelegram } from "lucide-react"
-import Link from "next/link"
+import { GameHeader } from "@/components/game-header"
+import { TelegramProvider, useTelegram } from "@/hooks/useTelegram"
+import { LoadingScreen } from "@/components/loading-screen"
 
+// Main component wrapper with Telegram Provider
 export default function HomePage() {
+  return (
+    <TelegramProvider>
+      <GameContent />
+    </TelegramProvider>
+  )
+}
+
+// Game content with Telegram integration
+function GameContent() {
   const [activeTab, setActiveTab] = useState<"clicker" | "upgrades" | "wallet" | "social" | "stats">("clicker")
   const gameState = useGameState()
-  const [tg, setTg] = useState<any>(null)
+  const [showWelcome, setShowWelcome] = useState(false)
+  const { isReady, user, tg } = useTelegram()
+  
+  // Save game state ID based on Telegram user ID
+  useEffect(() => {
+    if (user.id && gameState.setUserId) {
+      gameState.setUserId(user.id.toString())
+      
+      // Set player name from Telegram if available
+      if (user.username && gameState.setPlayerName) {
+        gameState.setPlayerName(user.username)
+      } else if (user.firstName && gameState.setPlayerName) {
+        gameState.setPlayerName(user.firstName + (user.lastName ? ` ${user.lastName}` : ''))
+      }
+    }
+  }, [user.id, user.username, user.firstName, user.lastName, gameState])
 
   useEffect(() => {
-    const tgApp = window.Telegram?.WebApp
-    if (tgApp) {
-      tgApp.ready()
-      tgApp.expand()
-      setTg(tgApp)
+    // Show welcome message for new players only if not returning
+    const hasPlayedBefore = localStorage.getItem("hasPlayedBefore")
+    if (!hasPlayedBefore && isReady) {
+      setShowWelcome(true)
+      localStorage.setItem("hasPlayedBefore", "true")
+      
+      // Auto-dismiss welcome message after 5 seconds
+      setTimeout(() => {
+        setShowWelcome(false)
+      }, 5000)
     }
-  }, [])
+  }, [isReady])
+
+  // Check for feature unlocks based on game state
+  useEffect(() => {
+    // Ensure the active tab is available to the player
+    if (activeTab === "wallet" && !gameState.unlockedFeatures.includes("wallet")) {
+      setActiveTab("clicker")
+    } else if (activeTab === "social" && !gameState.unlockedFeatures.includes("social")) {
+      setActiveTab("clicker")
+    } else if (activeTab === "stats" && !gameState.unlockedFeatures.includes("stats")) {
+      setActiveTab("clicker")
+    }
+  }, [activeTab, gameState.unlockedFeatures])
+  
+  // Handle Telegram back button
+  useEffect(() => {
+    if (tg && tg.BackButton) {
+      // Show back button when not on clicker tab
+      if (activeTab !== "clicker") {
+        tg.BackButton.show()
+        
+        const handleBackButton = () => {
+          setActiveTab("clicker")
+        }
+        
+        tg.onEvent('backButtonClicked', handleBackButton)
+        return () => {
+          tg.offEvent('backButtonClicked', handleBackButton)
+        }
+      } else {
+        tg.BackButton.hide()
+      }
+    }
+  }, [activeTab, tg])
+
+  // Show loading screen until Telegram WebApp is ready
+  if (!isReady) {
+    return <LoadingScreen />
+  }
 
   return (
-    <main className="min-h-screen bg-background text-foreground overflow-hidden relative">
-      <header className="sticky top-0 z-10 backdrop-blur-md bg-background/80 py-4">
-        <div className="container mx-auto px-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-2xl font-bold text-primary">$KNYE</span>
-            <div className="bg-secondary px-3 py-1 rounded-full flex items-center">
-              <Coins className="w-4 h-4 text-primary mr-2" />
-              <span className="text-white font-medium text-sm">{Math.floor(gameState.coins).toLocaleString()}</span>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center text-sm text-muted-foreground">
-              <Disc3 className="w-4 h-4 mr-1" />
-              <span>{gameState.coinsPerSecond.toFixed(1)}/sec</span>
-            </div>
-            <Link
-              href="https://example.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:text-primary/80"
-            >
-              <Globe className="w-5 h-5" />
-            </Link>
-            <Link
-              href="https://t.me/example"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:text-primary/80"
-            >
-              <BrandTelegram className="w-5 h-5" />
-            </Link>
-          </div>
-        </div>
-      </header>
+    <main className="min-h-svh max-h-svh bg-background text-foreground overflow-hidden relative">
+      <GameHeader gameState={gameState} />
 
-      <div className="container mx-auto px-4 pb-24 pt-6">
+      <div className="container mx-auto px-4 pb-24 pt-6 h-[calc(100vh-160px)] overflow-y-auto">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -85,9 +122,12 @@ export default function HomePage() {
             {activeTab === "wallet" && <WalletView gameState={gameState} />}
             {activeTab === "social" && (
               <>
-                <Leaderboard />
+                <Leaderboard userId={user.id?.toString()} />
                 <GuessAlbumGame gameState={gameState} />
-                <ReferralProgram gameState={gameState} />
+                <ReferralProgram 
+                  gameState={gameState} 
+                  telegramUsername={user.username || undefined}
+                />
                 <Tasks gameState={gameState} />
               </>
             )}
@@ -96,8 +136,37 @@ export default function HomePage() {
         </AnimatePresence>
       </div>
 
-      <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Navigation 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab}
+        unlockedFeatures={gameState.unlockedFeatures}
+      />
+      
+      {/* Welcome popup for new players */}
+      <AnimatePresence>
+        {showWelcome && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground p-4 rounded-lg shadow-lg max-w-sm w-full text-center z-50"
+          >
+            <h3 className="font-bold text-lg mb-1">
+              {user.firstName ? `Привет, ${user.firstName}!` : 'Добро пожаловать!'}
+            </h3>
+            <p className="text-sm mb-3">Жми на кнопку, чтобы заработать $KNYE. Покупай улучшения, чтобы увеличить доход!</p>
+            <div className="text-xs">
+              Достигни 3 уровня, чтобы разблокировать кошелёк
+            </div>
+            <button 
+              onClick={() => setShowWelcome(false)}
+              className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded-full bg-black/20 text-xs"
+            >
+              ✕
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   )
 }
-

@@ -167,7 +167,7 @@ export function DailyBonus({ gameState }: DailyBonusProps) {
                 <span className="text-muted-foreground">Next bonus in:</span>
                 <span className="font-medium text-primary">{formatTime(timeUntilNextBonus || 0)}</span>
               </div>
-              <Progress value={progressValue} className="h-2" />
+              <Progress value={progressValue} className="h-2 bg-muted/50" />
               
               {streakDays > 1 && (
                 <div className="flex items-center justify-center mt-3 text-xs text-muted-foreground">

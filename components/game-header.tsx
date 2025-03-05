@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Coins, Disc3, Battery, Sparkles, Rocket, Globe, BellIcon as TelegramIcon } from "lucide-react"
+import { Coins, Disc3, Battery, Sparkles, Rocket, Globe, MessageSquare } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import type { GameState } from "@/hooks/useGameState"
 import { AnimatePresence, motion } from "framer-motion"
@@ -20,6 +20,9 @@ export function GameHeader({ gameState }: GameHeaderProps) {
   // Calculate XP progress
   const xpForCurrentLevel = gameState.level * 500
   const xpProgress = (gameState.experience / xpForCurrentLevel) * 100
+  
+  // Calculate energy percentage
+  const energyPercentage = (gameState.energy / gameState.maxEnergy) * 100
   
   useEffect(() => {
     // Check for level up
@@ -92,7 +95,7 @@ export function GameHeader({ gameState }: GameHeaderProps) {
                 rel="noopener noreferrer"
                 className="text-primary hover:text-primary/80"
               >
-                <TelegramIcon className="w-5 h-5" />
+                <MessageSquare className="w-5 h-5" />
               </Link>
             </div>
           </div>
@@ -100,7 +103,7 @@ export function GameHeader({ gameState }: GameHeaderProps) {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 w-1/3">
               <Battery className="w-4 h-4 text-primary shrink-0" />
-              <Progress value={(gameState.energy / gameState.maxEnergy) * 100} className="h-2 flex-1" />
+              <Progress value={energyPercentage} className="h-2 flex-1 bg-secondary/60" />
               <span className="text-xs text-muted-foreground whitespace-nowrap">
                 {Math.floor(gameState.energy)}/{gameState.maxEnergy}
               </span>
@@ -111,7 +114,7 @@ export function GameHeader({ gameState }: GameHeaderProps) {
                 <Rocket className="w-4 h-4 text-primary" />
                 <span className="text-xs text-muted-foreground">Lvl {gameState.level}</span>
               </div>
-              <Progress value={xpProgress} className="h-2 flex-1" />
+              <Progress value={xpProgress} className="h-2 flex-1 bg-secondary/60" />
               <span className="text-xs text-muted-foreground">
                 {gameState.experience}/{xpForCurrentLevel}
               </span>

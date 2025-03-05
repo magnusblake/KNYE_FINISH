@@ -154,7 +154,7 @@ export function useGameState(): GameState {
   const [level, setLevel] = useState(1)
   const [prestigeLevel, setPrestigeLevel] = useState(0)
   const [prestigeMultiplier, setPrestigeMultiplier] = useState(1)
-  const [unlockedFeatures, setUnlockedFeatures] = useState<string[]>(['clicker', 'upgrades'])
+  const [unlockedFeatures, setUnlockedFeatures] = useState<string[]>(['clicker', 'upgrades', 'wallet', 'social', 'stats'])
   
   // Telegram-specific state
   const [userId, setUserId] = useState<string | null>(null)
@@ -279,7 +279,7 @@ export function useGameState(): GameState {
       costMultiplier: 2.5,
       effectMultiplier: 1.5,
       description: "Professional recording boosts your output",
-      unlocked: false,
+      unlocked: true,
     },
     {
       name: "Platinum Status",
@@ -290,7 +290,7 @@ export function useGameState(): GameState {
       costMultiplier: 3.0,
       effectMultiplier: 2.0,
       description: "Certified platinum for maximum clicks",
-      unlocked: false,
+      unlocked: true,
     },
   ])
 
@@ -359,7 +359,7 @@ export function useGameState(): GameState {
       costMultiplier: 2.5,
       effectMultiplier: 1.6,
       description: "Perform at festivals for massive passive income",
-      unlocked: false,
+      unlocked: true,
     },
     {
       name: "World Tour",
@@ -370,7 +370,7 @@ export function useGameState(): GameState {
       costMultiplier: 3.0,
       effectMultiplier: 2.0,
       description: "Global concerts generate enormous revenue",
-      unlocked: false,
+      unlocked: true,
     },
   ])
 
@@ -429,7 +429,7 @@ export function useGameState(): GameState {
       setLevel(savedState.level || 1)
       setPrestigeLevel(savedState.prestigeLevel || 0)
       setPrestigeMultiplier(savedState.prestigeMultiplier || 1)
-      setUnlockedFeatures(savedState.unlockedFeatures || ['clicker', 'upgrades'])
+      setUnlockedFeatures(savedState.unlockedFeatures || ['clicker', 'upgrades', 'wallet', 'social', 'stats'])
       setStats(savedState.stats || {
         totalCoinsEarned: 0,
         totalClicksAllTime: 0,
@@ -669,18 +669,7 @@ export function useGameState(): GameState {
       setLevel(prev => prev + 1);
       setIsDataSynced(false)
       
-      // Unlock features based on level
-      if (level === 3 && !unlockedFeatures.includes('wallet')) {
-        setUnlockedFeatures(prev => [...prev, 'wallet']);
-      }
-      if (level === 5 && !unlockedFeatures.includes('social')) {
-        setUnlockedFeatures(prev => [...prev, 'social']);
-      }
-      if (level === 8 && !unlockedFeatures.includes('stats')) {
-        setUnlockedFeatures(prev => [...prev, 'stats']);
-      }
-      
-      // Unlock more advanced upgrades
+      // Unlock more advanced upgrades as player levels up
       if (level >= 5) {
         setClickUpgrades(prev => {
           const newUpgrades = [...prev];
@@ -838,7 +827,7 @@ export function useGameState(): GameState {
   // Energy usage function
   const useEnergy = (amount: number) => {
     if (energy >= amount) {
-      setEnergy((prev) => prev - amount)
+      setEnergy((prev) => prev - amount);
       setIsDataSynced(false)
       return true
     }
@@ -947,12 +936,12 @@ export function useGameState(): GameState {
     });
     setIsDataSynced(false)
   }
-  
+
   // Telegram-specific functions
   const handleSetUserId = (id: string) => {
     setUserId(id)
   }
-  
+
   const handleSetPlayerName = (name: string) => {
     setPlayerName(name)
     setIsDataSynced(false)

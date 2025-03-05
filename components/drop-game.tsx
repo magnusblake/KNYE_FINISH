@@ -37,6 +37,7 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
   const [hasSpecialItem, setHasSpecialItem] = useState(false)
   const [multiplier, setMultiplier] = useState(1)
   const [level, setLevel] = useState(1)
+  const [gameAnimationCompleted, setGameAnimationCompleted] = useState(false)
 
   const canPlay = useCallback(() => {
     return Date.now() - gameState.lastDropGameTimestamp >= 2 * 60 * 60 * 1000
@@ -52,6 +53,15 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
     score5000: false,
     level3: false
   })
+
+  useEffect(() => {
+    // Mark animation as completed after a short delay to prevent flashing
+    if (gameStatus === 'initial') {
+      setTimeout(() => {
+        setGameAnimationCompleted(true);
+      }, 300);
+    }
+  }, [gameStatus]);
 
   useEffect(() => {
     if (gameStatus === "playing") {
@@ -350,8 +360,8 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
         </Button>
       </div>
 
-      <AnimatePresence>
-        {gameStatus !== "playing" && (
+      <AnimatePresence mode="wait">
+        {gameStatus !== "playing" && gameAnimationCompleted && (
           <GameCard>
             {gameStatus === "initial" ? (
               <>
@@ -461,7 +471,7 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
               <div className="w-20">
                 <Progress
                   value={(energy / gameState.maxEnergy) * 100}
-                  className="h-2"
+                  className="h-2 bg-secondary/60"
                 />
               </div>
             </div>

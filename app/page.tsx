@@ -60,18 +60,6 @@ function GameContent() {
       }, 5000)
     }
   }, [isReady])
-
-  // Check for feature unlocks based on game state
-  useEffect(() => {
-    // Ensure the active tab is available to the player
-    if (activeTab === "wallet" && !gameState.unlockedFeatures.includes("wallet")) {
-      setActiveTab("clicker")
-    } else if (activeTab === "social" && !gameState.unlockedFeatures.includes("social")) {
-      setActiveTab("clicker")
-    } else if (activeTab === "stats" && !gameState.unlockedFeatures.includes("stats")) {
-      setActiveTab("clicker")
-    }
-  }, [activeTab, gameState.unlockedFeatures])
   
   // Handle Telegram back button
   useEffect(() => {
@@ -155,9 +143,6 @@ function GameContent() {
               {user.firstName ? `Привет, ${user.firstName}!` : 'Добро пожаловать!'}
             </h3>
             <p className="text-sm mb-3">Жми на кнопку, чтобы заработать $KNYE. Покупай улучшения, чтобы увеличить доход!</p>
-            <div className="text-xs">
-              Достигни 3 уровня, чтобы разблокировать кошелёк
-            </div>
             <button 
               onClick={() => setShowWelcome(false)}
               className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded-full bg-black/20 text-xs"

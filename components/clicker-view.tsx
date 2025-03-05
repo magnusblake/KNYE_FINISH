@@ -10,7 +10,6 @@ import { DropGame } from "./drop-game"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Coins } from "lucide-react"
-import { Progress } from "@/components/ui/progress"
 
 interface ClickerViewProps {
   gameState: GameState
@@ -21,13 +20,11 @@ export function ClickerView({ gameState }: ClickerViewProps) {
   const [isDropGameOpen, setIsDropGameOpen] = useState(false)
   const [timeUntilNextGame, setTimeUntilNextGame] = useState<string | null>(null)
   const [canClick, setCanClick] = useState(true)
-  const [energyUsed, setEnergyUsed] = useState(false)
   const [clickStreak, setClickStreak] = useState(0)
   const [lastClickTime, setLastClickTime] = useState(0)
   const [comboMultiplier, setComboMultiplier] = useState(1)
   const [showComboText, setShowComboText] = useState(false)
   const clickerRef = useRef<HTMLDivElement>(null)
-  const [clickCounter, setClickCounter] = useState(0)
 
   const handleClick = (e: React.MouseEvent) => {
     if (canClick && gameState.energy >= 1) {
@@ -68,9 +65,9 @@ export function ClickerView({ gameState }: ClickerViewProps) {
       }, 1000)
 
       gameState.addCoins(earnedCoins)
-      setClickCounter(prev => prev + 1)
+      gameState.totalClicks += 1 // Directly increment total clicks
       setCanClick(false)
-      setEnergyUsed(true)
+      gameState.useEnergy(1) // Use 1 energy per click
       
       // Visual feedback - make the clicker element pulse
       if (clickerRef.current) {
@@ -82,23 +79,9 @@ export function ClickerView({ gameState }: ClickerViewProps) {
       
       setTimeout(() => {
         setCanClick(true)
-        setEnergyUsed(false)
       }, 200)
     }
   }
-
-  useEffect(() => {
-    if (energyUsed) {
-      gameState.useEnergy(1)
-    }
-  }, [energyUsed, gameState])
-
-  useEffect(() => {
-    if (clickCounter >= 10) {
-      gameState.totalClicks += clickCounter
-      setClickCounter(0)
-    }
-  }, [clickCounter, gameState])
 
   useEffect(() => {
     const updateTimeUntilNextGame = () => {
@@ -118,28 +101,8 @@ export function ClickerView({ gameState }: ClickerViewProps) {
     return () => clearInterval(interval)
   }, [gameState.lastDropGameTimestamp])
 
-  const energyPercentage = (gameState.energy / gameState.maxEnergy) * 100
-
   return (
     <div className="flex flex-col items-center justify-center py-8 relative">
-      <h1 className="text-4xl font-bold mb-2 text-primary">$KNYE CLICKER</h1>
-      <p className="text-muted-foreground mb-8">Tap to earn {gameState.coinsPerClick.toFixed(2)} coins per click</p>
-
-      <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-8 w-full max-w-md">
-        <div className="bg-secondary px-3 py-2 rounded-full flex items-center w-full sm:w-auto">
-          <Coins className="w-4 h-4 text-primary mr-2" />
-          <span className="text-white font-medium text-sm">{Math.floor(gameState.coins).toLocaleString()}</span>
-        </div>
-        
-        <div className="w-full sm:flex-1">
-          <div className="flex justify-between text-xs mb-1">
-            <span className="text-muted-foreground">Energy</span>
-            <span className="text-primary">{Math.floor(gameState.energy)}/{gameState.maxEnergy}</span>
-          </div>
-          <Progress value={energyPercentage} className="h-2" />
-        </div>
-      </div>
-
       {showComboText && (
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
@@ -233,11 +196,12 @@ export function ClickerView({ gameState }: ClickerViewProps) {
         <CardContent>
           <Button
             onClick={() => {
-              setIsDropGameOpen(true)
-              console.log("Opening Drop Game")
+              if (!isDropGameOpen) {
+                setIsDropGameOpen(true)
+              }
             }}
             className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-            disabled={!!timeUntilNextGame}
+            disabled={!!timeUntilNextGame || isDropGameOpen}
           >
             {timeUntilNextGame ? `Next game in ${timeUntilNextGame}` : "Play Drop Game"}
           </Button>
@@ -247,7 +211,6 @@ export function ClickerView({ gameState }: ClickerViewProps) {
               gameState={gameState}
               onClose={() => {
                 setIsDropGameOpen(false)
-                console.log("Closing Drop Game")
               }}
             />
           )}

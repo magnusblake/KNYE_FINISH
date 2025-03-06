@@ -5,6 +5,7 @@ import type { GameState } from "@/hooks/useGameState"
 import { Button } from "@/components/ui/button"
 import { CheckSquare, ExternalLink, AlertCircle } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface TasksProps {
   gameState: GameState
@@ -35,58 +36,61 @@ export function Tasks({ gameState }: TasksProps) {
   }
 
   return (
-    <div className="bg-secondary p-4 rounded-lg mb-6">
-      <div className="flex items-center gap-3 mb-4">
-        <CheckSquare className="w-6 h-6 text-primary" />
-        <h3 className="text-lg font-bold text-primary">Daily Tasks</h3>
-      </div>
+    <Card className="bg-secondary border-none mb-4">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2">
+          <CheckSquare className="w-5 h-5 text-primary" />
+          Daily Tasks
+        </CardTitle>
+      </CardHeader>
 
-      <div className="space-y-4">
-        <AnimatePresence>
-          {TASKS.map((task) => (
-            <motion.div
-              key={task.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className="bg-accent p-4 rounded-lg"
-            >
-              <div className="flex justify-between">
-                <h4 className="font-medium text-lg text-primary">{task.name}</h4>
-                <div className="text-sm text-muted-foreground">+{task.reward} $KNYE</div>
-              </div>
-              <Button
-                onClick={() => handleCompleteTask(task.id)}
-                disabled={gameState.completedTasks.includes(task.id) || completingTask === task.id}
-                className={
-                  !gameState.completedTasks.includes(task.id) && completingTask !== task.id
-                    ? "w-full mt-2 bg-primary hover:bg-primary/90 text-primary-foreground"
-                    : "w-full mt-2 bg-muted text-muted-foreground"
-                }
+      <CardContent className="pt-2">
+        <div className="space-y-3">
+          <AnimatePresence>
+            {TASKS.map((task) => (
+              <motion.div
+                key={task.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="bg-accent p-3 rounded-md"
               >
-                {gameState.completedTasks.includes(task.id) ? (
-                  "Completed"
-                ) : completingTask === task.id ? (
-                  "Verifying..."
-                ) : (
-                  <>
-                    Complete <ExternalLink className="w-4 h-4 ml-2" />
-                  </>
-                )}
-              </Button>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
-
-      {error && (
-        <div className="mt-4 p-3 bg-destructive/20 border border-destructive rounded-lg text-destructive flex items-center">
-          <AlertCircle className="w-5 h-5 mr-2" />
-          {error}
+                <div className="flex justify-between">
+                  <h4 className="font-medium text-md text-primary">{task.name}</h4>
+                  <div className="text-sm text-muted-foreground">+{task.reward} $KNYE</div>
+                </div>
+                <Button
+                  onClick={() => handleCompleteTask(task.id)}
+                  disabled={gameState.completedTasks.includes(task.id) || completingTask === task.id}
+                  className={
+                    !gameState.completedTasks.includes(task.id) && completingTask !== task.id
+                      ? "w-full mt-2 bg-primary hover:bg-primary/90 text-primary-foreground"
+                      : "w-full mt-2 bg-muted text-muted-foreground"
+                  }
+                >
+                  {gameState.completedTasks.includes(task.id) ? (
+                    "Completed"
+                  ) : completingTask === task.id ? (
+                    "Verifying..."
+                  ) : (
+                    <>
+                      Complete <ExternalLink className="w-4 h-4 ml-2" />
+                    </>
+                  )}
+                </Button>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
-      )}
-    </div>
+
+        {error && (
+          <div className="mt-4 p-3 bg-destructive/20 border border-destructive rounded-lg text-destructive flex items-center">
+            <AlertCircle className="w-5 h-5 mr-2" />
+            {error}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }
-

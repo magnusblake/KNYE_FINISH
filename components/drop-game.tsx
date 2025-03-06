@@ -31,12 +31,10 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
   const [combo, setCombo] = useState(0)
   const [lastCatchTime, setLastCatchTime] = useState(0)
   const [clickEffects, setClickEffects] = useState<{ id: number; x: number; y: number; type: string; points?: number }[]>([])
-  const [spawnRate, setSpawnRate] = useState(500)
-  const [specialItemTimestamp, setSpecialItemTimestamp] = useState(0)
-  const [hasSpecialItem, setHasSpecialItem] = useState(false)
-  const [multiplier, setMultiplier] = useState(1)
+  const [spawnRate, setSpawnRate] = useState(600) // Slower spawn rate
   const [level, setLevel] = useState(1)
   const [gameAnimationCompleted, setGameAnimationCompleted] = useState(false)
+  const [multiplier, setMultiplier] = useState(1)
 
   const canPlay = useCallback(() => {
     return Date.now() - gameState.lastDropGameTimestamp >= 2 * 60 * 60 * 1000
@@ -78,41 +76,13 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
 
       // Adaptive difficulty
       const difficultyAdjuster = setInterval(() => {
-        if (score > 1000 * level && level < 5) {
+        if (score > 800 * level && level < 5) {
           setLevel(prev => prev + 1)
-          setSpawnRate(prev => Math.max(250, prev - 50))
+          setSpawnRate(prev => Math.max(300, prev - 50))
           setShowLevelUpEffect(true)
           setTimeout(() => setShowLevelUpEffect(false), 2000)
         }
       }, 5000)
-
-      // Special items have a chance to appear
-      const specialItemTimer = setInterval(() => {
-        if (!hasSpecialItem && Math.random() < 0.3) {
-          setHasSpecialItem(true)
-          setSpecialItemTimestamp(Date.now())
-          
-          if (gameAreaRef.current) {
-            const width = gameAreaRef.current.offsetWidth
-            const newItem: FallingItem = {
-              id: Date.now(),
-              type: "special",
-              x: Math.random() * (width - 40),
-              y: -40,
-              speed: 2,
-              rotation: Math.random() * 360,
-              scale: 1.2,
-            }
-            setItems((prev) => [...prev, newItem])
-          }
-          
-          // Special item disappears after 7 seconds if not caught
-          setTimeout(() => {
-            setHasSpecialItem(false)
-            setItems(prev => prev.filter(item => item.type !== "special"))
-          }, 7000)
-        }
-      }, 10000)
 
       // Item generator
       const itemSpawner = setInterval(() => {
@@ -124,7 +94,8 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
             type: itemType,
             x: Math.random() * (width - 40),
             y: -40,
-            speed: Math.random() * (3 + level / 2) + 2, // Speed increases with level
+            // Increased base speed and level scaling
+            speed: Math.random() * (4 + level / 2) + 3,
             rotation: Math.random() * 360,
             scale: itemType === "bomb" ? 1.1 : 1.0,
           }
@@ -148,17 +119,17 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
         clearInterval(timer)
         clearInterval(itemSpawner)
         clearInterval(mover)
-        clearInterval(specialItemTimer)
         clearInterval(difficultyAdjuster)
         document.body.style.overflow = ""
       }
     }
-  }, [gameStatus, score, level, hasSpecialItem, spawnRate])
+  }, [gameStatus, score, level, spawnRate])
 
   // Function to determine item type based on level
   const generateItemType = (currentLevel: number): "mic" | "disc" | "bomb" => {
-    const bombChance = 0.05 + (currentLevel * 0.03); // More bombs at higher levels
-    const discChance = 0.3 + (currentLevel * 0.02); // More discs at higher levels
+    // Increased bomb chance and disc chance for higher difficulty
+    const bombChance = 0.08 + (currentLevel * 0.04);
+    const discChance = 0.25 + (currentLevel * 0.02);
     
     const rand = Math.random();
     
@@ -176,7 +147,7 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
       setCombo(0)
       setMultiplier(1)
       setLevel(1)
-      setSpawnRate(500)
+      setSpawnRate(600)
       gameState.setLastDropGameTimestamp(Date.now())
       setAchievements({
         catchStreak10: false,
@@ -188,7 +159,6 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
 
   const handleCatch = useCallback(
     (item: FallingItem) => {
-      // Removed energy check - players can catch regardless of energy
       const clickEffect = {
         id: Date.now(),
         x: item.x,
@@ -201,8 +171,8 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
       }, 500)
 
       if (item.type === "bomb") {
-        // Bomb penalty varies by level
-        const penalty = Math.min(500, score * 0.15); // Lose 15% of score or up to 500 points
+        // Increased bomb penalty
+        const penalty = Math.min(700, score * 0.2);
         setScore(prev => Math.max(0, prev - penalty));
         setCombo(0)
         setMultiplier(1)
@@ -235,10 +205,10 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
               }])
             }
             
-            // Increase multiplier every 5 combos up to 3x
-            if (newCombo % 5 === 0 && multiplier < 3) {
+            // Increase multiplier every 8 combos (more difficult)
+            if (newCombo % 8 === 0 && multiplier < 2) {
               setMultiplier(prev => {
-                const newMultiplier = Math.min(3, prev + 0.5);
+                const newMultiplier = Math.min(2, prev + 0.25);
                 setShowMultiplierEffect(true)
                 setTimeout(() => setShowMultiplierEffect(false), 2000)
                 return newMultiplier;
@@ -250,30 +220,23 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
         } else {
           setCombo(1)
           if (multiplier > 1) {
-            setMultiplier(prev => Math.max(1, prev - 0.5))
+            setMultiplier(prev => Math.max(1, prev - 0.25))
           }
         }
         setLastCatchTime(now)
 
+        // Reduced point values
         let itemPoints = 0;
         if (item.type === "mic") {
-          itemPoints = 10;
+          itemPoints = 5; // Reduced from 10
         } else if (item.type === "disc") {
-          itemPoints = 25;
+          itemPoints = 15; // Reduced from 25
         } else if (item.type === "special") {
-          // Special items apply a temporary boost
-          itemPoints = 100;
-          setMultiplier(prev => {
-            const newMultiplier = 3; // Special items set multiplier to max
-            setShowMultiplierEffect(true)
-            setTimeout(() => setShowMultiplierEffect(false), 3000)
-            return newMultiplier;
-          })
-          setHasSpecialItem(false)
+          itemPoints = 50;
         }
         
-        // Apply combo and multiplier to points
-        const comboBonus = Math.min(combo, 10) / 2; // Up to +5 points per combo level
+        // Reduced combo bonus (less reward for combos)
+        const comboBonus = Math.min(combo, 10) / 4;
         const totalPoints = Math.round((itemPoints + comboBonus) * multiplier);
         
         setScore((prev) => prev + totalPoints)
@@ -321,7 +284,8 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
     [combo, lastCatchTime, multiplier, score, achievements, level]
   )
 
-  const earnedCoins = Math.round(score * 10) // 10 $KNYE per point
+  // Reduced reward ratio: now 8 $KNYE per point instead of 10
+  const earnedCoins = Math.round(score * 8)
 
   const GameCard = React.memo(({ children }: { children: React.ReactNode }) => (
     <motion.div
@@ -357,7 +321,7 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
                 <Play className="w-16 h-16 text-primary mx-auto mb-4" />
                 <h2 className="text-3xl font-bold text-primary mb-4">Drop Game</h2>
                 <p className="text-muted-foreground mb-6">
-                  Catch microphones and discs to earn $KNYE. Special items boost your multiplier. Avoid the bombs!
+                  Catch microphones and discs to earn $KNYE. Avoid the bombs or lose points!
                 </p>
                 <Button 
                   onClick={handleStart} 

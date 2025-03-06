@@ -1,12 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Coins, Disc3, Battery, Sparkles, Rocket, Globe, MessageSquare, ZapIcon } from "lucide-react"
+import { Coins, Disc3, Battery, Sparkles, Rocket, ZapIcon } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import type { GameState } from "@/hooks/useGameState"
 import { AnimatePresence, motion } from "framer-motion"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 
 interface GameHeaderProps {
   gameState: GameState
@@ -44,9 +43,9 @@ export function GameHeader({ gameState }: GameHeaderProps) {
   }, [gameState.level, previousLevel])
 
   return (
-    <header className="sticky top-0 z-10 backdrop-blur-md bg-background/80 py-4">
+    <header className="sticky top-0 z-10 backdrop-blur-md bg-background/80 py-3">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col space-y-3">
+        <div className="flex flex-col space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <span className="text-2xl font-bold text-primary">$KNYE</span>
@@ -63,7 +62,7 @@ export function GameHeader({ gameState }: GameHeaderProps) {
               )}
             </div>
             
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               <div className="flex items-center text-sm text-muted-foreground">
                 <ZapIcon className="w-4 h-4 mr-1" />
                 <span>{gameState.coinsPerClick.toFixed(1)}/click</span>
@@ -73,29 +72,11 @@ export function GameHeader({ gameState }: GameHeaderProps) {
                 <Disc3 className="w-4 h-4 mr-1" />
                 <span>{gameState.coinsPerSecond.toFixed(1)}/s</span>
               </div>
-              
-              <Link
-                href="https://example.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:text-primary/80"
-              >
-                <Globe className="w-5 h-5" />
-              </Link>
-              
-              <Link
-                href="https://t.me/example"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:text-primary/80"
-              >
-                <MessageSquare className="w-5 h-5" />
-              </Link>
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 w-1/2">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 w-1/2">
               <Battery className="w-4 h-4 text-primary shrink-0" />
               <Progress value={energyPercentage} className="h-2 flex-1 bg-secondary/60" />
               <span className="text-xs text-muted-foreground whitespace-nowrap">
@@ -103,7 +84,7 @@ export function GameHeader({ gameState }: GameHeaderProps) {
               </span>
             </div>
             
-            <div className="w-1/2 flex items-center gap-2">
+            <div className="w-1/2 flex items-center gap-1">
               <div className="flex items-center gap-1 shrink-0">
                 <Rocket className="w-4 h-4 text-primary" />
                 <span className="text-xs text-muted-foreground">Lvl {gameState.level}</span>

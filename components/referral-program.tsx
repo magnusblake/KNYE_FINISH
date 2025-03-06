@@ -18,11 +18,11 @@ export function ReferralProgram({ gameState, telegramUsername }: ReferralProgram
   const [copied, setCopied] = useState(false)
   const { tg } = useTelegram()
   
-  // Генерируем реферальный код на основе Telegram username или ID
+  // Generate referral code based on Telegram username or ID
   const myReferralCode = telegramUsername || 
     (gameState.userId ? `user${gameState.userId}` : "KNYE_USER")
   
-  // Полная реферальная ссылка
+  // Full referral link
   const referralLink = `https://t.me/KnyeClickerBot?start=${myReferralCode}`
 
   const handleCopyReferralCode = () => {
@@ -31,16 +31,16 @@ export function ReferralProgram({ gameState, telegramUsername }: ReferralProgram
     setTimeout(() => setCopied(false), 2000)
   }
   
-  // Функция для шаринга через Telegram
+  // Function for sharing through Telegram
   const handleShare = () => {
     if (tg && tg.shareUrl) {
       tg.shareUrl(referralLink)
     } else {
-      // Fallback для использования вне Telegram
+      // Fallback for use outside Telegram
       if (navigator.share) {
         navigator.share({
           title: '$KNYE Clicker',
-          text: 'Присоединяйся к игре $KNYE Clicker и получи бонус по моей реферальной ссылке!',
+          text: 'Join the $KNYE Clicker game and get a bonus with my referral link!',
           url: referralLink
         })
       } else {
@@ -61,14 +61,14 @@ export function ReferralProgram({ gameState, telegramUsername }: ReferralProgram
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2">
           <Users className="w-5 h-5 text-primary" />
-          Реферальная программа
+          Referral Program
         </CardTitle>
       </CardHeader>
       
       <CardContent>
         <div className="space-y-4">
           <div>
-            <p className="text-sm text-muted-foreground mb-2">Поделитесь своей реферальной ссылкой и заработайте награды!</p>
+            <p className="text-sm text-muted-foreground mb-2">Share your referral link and earn rewards!</p>
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Input 
@@ -94,37 +94,37 @@ export function ReferralProgram({ gameState, telegramUsername }: ReferralProgram
                 className="bg-primary hover:bg-primary/90 text-primary-foreground shrink-0"
               >
                 <Share2 className="w-4 h-4 mr-2" />
-                Поделиться
+                Share
               </Button>
             </div>
           </div>
           
           <div>
-            <p className="text-sm text-muted-foreground mb-2">Введите реферальный код друга:</p>
+            <p className="text-sm text-muted-foreground mb-2">Enter a friend's referral code:</p>
             <div className="flex gap-2">
               <Input
                 value={referralCode}
                 onChange={(e) => setReferralCode(e.target.value)}
-                placeholder="Введите код"
+                placeholder="Enter code"
                 className="bg-accent border-accent"
               />
               <Button
                 onClick={handleSubmitReferralCode}
                 className="shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground"
               >
-                Применить
+                Apply
               </Button>
             </div>
           </div>
           
           <div className="pt-2 flex justify-between items-center">
-            <p className="text-sm text-muted-foreground">Ваши рефералы:</p>
+            <p className="text-sm text-muted-foreground">Your referrals:</p>
             <p className="text-lg font-medium text-primary">{gameState.referrals.length}</p>
           </div>
           
           {gameState.referrals.length > 0 && (
             <div className="bg-accent rounded-lg p-3">
-              <p className="text-sm text-muted-foreground mb-2">Активные рефералы:</p>
+              <p className="text-sm text-muted-foreground mb-2">Active referrals:</p>
               <ul className="space-y-1">
                 {gameState.referrals.map((refCode, index) => (
                   <li key={index} className="text-xs flex justify-between">

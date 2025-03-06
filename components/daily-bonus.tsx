@@ -112,7 +112,7 @@ export function DailyBonus({ gameState }: DailyBonusProps) {
   const progressValue = timeUntilNextBonus !== null ? 100 - (timeUntilNextBonus / (24 * 60 * 60 * 1000)) * 100 : 0
 
   return (
-    <Card className="bg-secondary border-none mb-6">
+    <Card className="bg-secondary border-none mb-4">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2">
           <Gift className="w-5 h-5 text-primary" />

@@ -1,14 +1,15 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect, useRef } from "react"
-import { Gamepad2 } from "lucide-react"
+import { useState, useEffect, useRef, useCallback } from "react"
+import { Gamepad2, Globe, MessageSquare } from "lucide-react"
 import type { GameState } from "@/hooks/useGameState"
 import { AnimatePresence, motion } from "framer-motion"
 import Image from "next/image"
 import { DropGame } from "./drop-game"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import Link from "next/link"
 
 interface ClickerViewProps {
   gameState: GameState
@@ -102,7 +103,7 @@ export function ClickerView({ gameState }: ClickerViewProps) {
   }, [gameState.lastDropGameTimestamp])
 
   return (
-    <div className="flex flex-col items-center justify-center py-8 relative">
+    <div className="flex flex-col items-center justify-center py-4 relative">
       {showComboText && (
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
@@ -114,7 +115,7 @@ export function ClickerView({ gameState }: ClickerViewProps) {
         </motion.div>
       )}
 
-      <div className="relative mb-8">
+      <div className="relative mb-6">
         <motion.div
           ref={clickerRef}
           className="relative z-10 w-48 h-48 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg cursor-pointer overflow-hidden transition-transform duration-100"
@@ -122,7 +123,7 @@ export function ClickerView({ gameState }: ClickerViewProps) {
           onClick={handleClick}
         >
           <Image
-            src="/placeholder.svg?height=180&width=180"
+            src="/api/placeholder/180/180"
             alt="Kanye West"
             width={180}
             height={180}
@@ -163,7 +164,7 @@ export function ClickerView({ gameState }: ClickerViewProps) {
         <CardContent>
           <Button
             onClick={() => {
-              if (!isDropGameOpen) {
+              if (!isDropGameOpen && !timeUntilNextGame) {
                 setIsDropGameOpen(true)
               }
             }}
@@ -172,17 +173,41 @@ export function ClickerView({ gameState }: ClickerViewProps) {
           >
             {timeUntilNextGame ? `Next game in ${timeUntilNextGame}` : "Play Drop Game"}
           </Button>
-
-          {isDropGameOpen && (
-            <DropGame
-              gameState={gameState}
-              onClose={() => {
-                setIsDropGameOpen(false)
-              }}
-            />
-          )}
         </CardContent>
       </Card>
+
+      {/* Social links below Drop Game */}
+      <div className="mt-6 flex justify-center gap-8">
+        <Link
+          href="https://example.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex flex-col items-center text-primary hover:text-primary/80"
+        >
+          <Globe className="w-6 h-6 mb-2" />
+          <span className="text-sm">Website</span>
+        </Link>
+        
+        <Link
+          href="https://t.me/example"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex flex-col items-center text-primary hover:text-primary/80"
+        >
+          <MessageSquare className="w-6 h-6 mb-2" />
+          <span className="text-sm">Telegram</span>
+        </Link>
+      </div>
+
+      {/* Drop Game Modal - mounted conditionally with AnimatePresence to prevent flickering */}
+      <AnimatePresence>
+        {isDropGameOpen && (
+          <DropGame
+            gameState={gameState}
+            onClose={() => setIsDropGameOpen(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

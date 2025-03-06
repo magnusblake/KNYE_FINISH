@@ -72,7 +72,7 @@ function UpgradeItem({
   }
 
   return (
-    <div className={`bg-secondary p-4 rounded-lg mb-4 relative ${locked ? 'opacity-70' : ''}`}>
+    <div className={`bg-accent p-3 rounded-lg mb-3 relative ${locked ? 'opacity-70' : ''}`}>
       <AnimatePresence>
         {showPurchaseEffect && (
           <motion.div
@@ -93,28 +93,28 @@ function UpgradeItem({
         )}
       </AnimatePresence>
       
-      <div className="flex items-start gap-4">
-        <div className={`w-12 h-12 rounded-lg ${tabColor} flex items-center justify-center text-black`}>
+      <div className="flex items-start gap-3">
+        <div className={`w-10 h-10 rounded-lg ${tabColor} flex items-center justify-center text-black shrink-0`}>
           {icon}
         </div>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <div className="flex justify-between items-center">
-            <h3 className="font-bold text-lg text-primary flex items-center">
+            <h3 className="font-bold text-md text-primary flex items-center truncate mr-2">
               {title}
-              {locked && <Tag className="w-4 h-4 ml-2 text-muted-foreground" />}
+              {locked && <Tag className="w-4 h-4 ml-1 text-muted-foreground" />}
             </h3>
-            <span className="text-sm text-muted-foreground">
+            <span className="text-xs text-muted-foreground whitespace-nowrap">
               Lv. {level}/{maxLevel}
             </span>
           </div>
-          <p className="text-muted-foreground text-sm mb-2">{description}</p>
+          <p className="text-muted-foreground text-xs mb-2 line-clamp-1">{description}</p>
           <Progress 
             value={(level / maxLevel) * 100} 
-            className="h-2 mb-3" 
+            className="h-1.5 mb-2" 
             indicatorColor={locked ? "bg-muted" : "bg-primary"} 
           />
           <div className="flex justify-between items-center">
-            <span className="text-muted-foreground font-medium text-sm">{effect}</span>
+            <span className="text-muted-foreground text-xs font-medium">{effect}</span>
             <Button
               size="sm"
               onClick={handlePurchase}
@@ -131,7 +131,7 @@ function UpgradeItem({
                 "Locked"
               ) : (
                 <>
-                  <CoinsIcon className="w-4 h-4 mr-1" />
+                  <CoinsIcon className="w-3 h-3 mr-1" />
                   {cost.toLocaleString()}
                 </>
               )}
@@ -167,21 +167,21 @@ export function UpgradesView({ gameState }: UpgradesViewProps) {
     locked: !upgrade.unlocked,
     icon:
       upgrade.name === "Energy Drink" ? (
-        <CoffeeIcon className="w-6 h-6" />
+        <CoffeeIcon className="w-5 h-5" />
       ) : upgrade.name === "Power Nap" ? (
-        <BatteryIcon className="w-6 h-6" />
+        <BatteryIcon className="w-5 h-5" />
       ) : upgrade.name === "Microphone" ? (
-        <Mic2Icon className="w-6 h-6" />
+        <Mic2Icon className="w-5 h-5" />
       ) : upgrade.name === "Gold Chain" ? (
-        <LinkIcon className="w-6 h-6" />
+        <LinkIcon className="w-5 h-5" />
       ) : upgrade.name === "Designer Shoes" ? (
-        <ShirtIcon className="w-6 h-6" />
+        <ShirtIcon className="w-5 h-5" />
       ) : upgrade.name === "Studio Time" ? (
-        <Music className="w-6 h-6" />
+        <Music className="w-5 h-5" />
       ) : upgrade.name === "Platinum Status" ? (
-        <Trophy className="w-6 h-6" />
+        <Trophy className="w-5 h-5" />
       ) : (
-        <PaletteIcon className="w-6 h-6" />
+        <PaletteIcon className="w-5 h-5" />
       ),
   }))
 
@@ -208,27 +208,27 @@ export function UpgradesView({ gameState }: UpgradesViewProps) {
     locked: !upgrade.unlocked,
     icon:
       upgrade.name === "Fan Base" ? (
-        <UsersIcon className="w-6 h-6" />
+        <UsersIcon className="w-5 h-5" />
       ) : upgrade.name === "Record Deal" ? (
-        <Disc3Icon className="w-6 h-6" />
+        <Disc3Icon className="w-5 h-5" />
       ) : upgrade.name === "Fashion Line" ? (
-        <PaletteIcon className="w-6 h-6" />
+        <PaletteIcon className="w-5 h-5" />
       ) : upgrade.name === "Energy Drink" ? (
-        <CoffeeIcon className="w-6 h-6" />
+        <CoffeeIcon className="w-5 h-5" />
       ) : upgrade.name === "Power Nap" ? (
-        <BatteryIcon className="w-6 h-6" />
+        <BatteryIcon className="w-5 h-5" />
       ) : upgrade.name === "Music Festival" ? (
-        <Headphones className="w-6 h-6" />
+        <Headphones className="w-5 h-5" />
       ) : upgrade.name === "World Tour" ? (
-        <Globe className="w-6 h-6" />
+        <Globe className="w-5 h-5" />
       ) : (
-        <Radio className="w-6 h-6" />
+        <Radio className="w-5 h-5" />
       ),
   }))
 
   return (
-    <div className="py-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+    <div className="py-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
         <div>
           <h2 className="text-2xl font-bold mb-1 text-primary">Upgrades</h2>
           <p className="text-muted-foreground">Boost your $KNYE mining efficiency</p>
@@ -250,8 +250,8 @@ export function UpgradesView({ gameState }: UpgradesViewProps) {
       </div>
       
       {gameState.prestigeLevel > 0 && (
-        <Card className="mb-6 bg-secondary border-none">
-          <CardContent className="pt-6 flex items-center justify-between">
+        <Card className="mb-4 bg-secondary border-none">
+          <CardContent className="pt-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-primary" />
               <div>
@@ -265,7 +265,7 @@ export function UpgradesView({ gameState }: UpgradesViewProps) {
       )}
       
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-4">
+        <TabsList className="mb-3">
           <TabsTrigger value="click" className="flex items-center gap-2">
             <Mic2Icon className="w-4 h-4" />
             Click Upgrades
@@ -276,13 +276,13 @@ export function UpgradesView({ gameState }: UpgradesViewProps) {
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="click" className="space-y-4">
+        <TabsContent value="click" className="mt-0">
           {clickUpgrades.map((upgrade) => (
             <UpgradeItem key={upgrade.id} {...upgrade} tabColor="bg-primary" />
           ))}
         </TabsContent>
         
-        <TabsContent value="passive" className="space-y-4">
+        <TabsContent value="passive" className="mt-0">
           {passiveUpgrades.map((upgrade) => (
             <UpgradeItem key={upgrade.id} {...upgrade} tabColor="bg-primary" />
           ))}

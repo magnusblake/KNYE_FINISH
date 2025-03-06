@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import type { GameState } from "@/hooks/useGameState"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ArrowRightIcon, WalletIcon, CheckCircle, AlertCircle, CopyIcon, QrCodeIcon, ZapIcon } from "lucide-react"
+import { ArrowRightIcon, WalletIcon, CheckCircle, AlertCircle, CopyIcon, QrCodeIcon, ZapIcon, DollarSign } from "lucide-react"
 import { connectTonWallet, withdrawCoins, getWalletBalance } from "@/lib/wallet"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { motion, AnimatePresence } from "framer-motion"
 import { useTelegram } from "@/hooks/useTelegram"
+import { Badge } from "@/components/ui/badge"
 
 interface WalletViewProps {
   gameState: GameState
@@ -30,6 +31,9 @@ export function WalletView({ gameState }: WalletViewProps) {
   const [showQRCode, setShowQRCode] = useState(false)
   const { tg, showAlert, showConfirm } = useTelegram()
 
+  // Define conversion rate
+  const KNYE_TO_USD_RATE = 0.00025; // 1 KNYE = $0.00025
+
   const MIN_WITHDRAWAL = 10000
 
   const handleConnect = async () => {
@@ -37,33 +41,29 @@ export function WalletView({ gameState }: WalletViewProps) {
     setError("")
 
     try {
-      // В Telegram WebApp можем использовать TON Connect или встроенный Telegram Wallet
+      // In Telegram WebApp we can use TON Connect or built-in Telegram Wallet
       if (tg && tg.initDataUnsafe?.user) {
         const telegramUser = tg.initDataUnsafe.user
         
-        // Создаем псевдо-адрес на основе Telegram ID пользователя
-        // В реальности здесь должна быть интеграция с TON Wallet через WebApp
+        // Create pseudo-address based on Telegram ID
+        // In reality this would be integration with TON Wallet via WebApp
         const simulatedAddress = `EQD...${telegramUser.id.toString().padStart(10, '0')}`;
         
         gameState.setWalletAddress(simulatedAddress)
         
-        // Пример того, как это могло бы выглядеть с TON Connect
-        // const address = await connectTonWallet()
-        // gameState.setWalletAddress(address)
-        
-        // Добавляем опыт за подключение кошелька
+        // Add experience for connecting wallet
         gameState.addExperience(50)
         
-        // Уведомление пользователя через Telegram UI
-        showAlert("Кошелек успешно подключен!")
+        // Notify user through Telegram UI
+        showAlert("Wallet successfully connected!")
       } else {
-        // Fallback для отладки вне Telegram
+        // Fallback for debugging outside Telegram
         const address = await connectTonWallet()
         gameState.setWalletAddress(address)
         gameState.addExperience(50)
       }
     } catch (err: any) {
-      setError(err.message || "Не удалось подключить кошелек")
+      setError(err.message || "Failed to connect wallet")
     } finally {
       setIsConnecting(false)
     }
@@ -73,27 +73,27 @@ export function WalletView({ gameState }: WalletViewProps) {
     const amount = Number.parseInt(withdrawAmount)
 
     if (isNaN(amount) || amount <= 0) {
-      setError("Пожалуйста, введите корректную сумму")
+      setError("Please enter a valid amount")
       return
     }
 
     if (amount > gameState.coins) {
-      setError("Недостаточно монет для вывода")
+      setError("Insufficient coins for withdrawal")
       return
     }
 
     if (amount < MIN_WITHDRAWAL) {
-      setError(`Минимальная сумма вывода: ${MIN_WITHDRAWAL.toLocaleString()} $KNYE`)
+      setError(`Minimum withdrawal amount: ${MIN_WITHDRAWAL.toLocaleString()} $KNYE`)
       return
     }
 
     if (!gameState.walletAddress) {
-      setError("Пожалуйста, подключите TON кошелек")
+      setError("Please connect your TON wallet")
       return
     }
     
-    // Запрашиваем подтверждение через Telegram UI
-    const confirmed = await showConfirm(`Вы уверены, что хотите вывести ${amount.toLocaleString()} $KNYE?`)
+    // Request confirmation through Telegram UI
+    const confirmed = await showConfirm(`Are you sure you want to withdraw ${amount.toLocaleString()} $KNYE?`)
     
     if (!confirmed) return
     
@@ -101,17 +101,17 @@ export function WalletView({ gameState }: WalletViewProps) {
     setError("")
 
     try {
-      // В реальном приложении здесь был бы запрос к API для вывода средств
+      // In a real app, this would be an API request to withdraw funds
       setTimeout(async () => {
         gameState.removeCoins(amount)
         setWithdrawSuccess(true)
         setWithdrawAmount("")
         
-        // Добавляем опыт за успешный вывод
+        // Add experience for successful withdrawal
         gameState.addExperience(100)
         
-        // Уведомляем пользователя через Telegram UI
-        showAlert(`Успешно выведено ${amount.toLocaleString()} $KNYE!`)
+        // Notify user through Telegram UI
+        showAlert(`Successfully withdrawn ${amount.toLocaleString()} $KNYE!`)
 
         setTimeout(() => {
           setWithdrawSuccess(false)
@@ -120,12 +120,12 @@ export function WalletView({ gameState }: WalletViewProps) {
         setWithdrawing(false)
       }, 2000)
     } catch (err: any) {
-      setError(err.message || "Не удалось выполнить вывод")
+      setError(err.message || "Failed to complete withdrawal")
       setWithdrawing(false)
     }
   }
   
-  // Копирование адреса кошелька в буфер обмена
+  // Copy wallet address to clipboard
   const handleCopyAddress = () => {
     if (gameState.walletAddress) {
       navigator.clipboard.writeText(gameState.walletAddress)
@@ -134,7 +134,7 @@ export function WalletView({ gameState }: WalletViewProps) {
     }
   }
   
-  // Установка максимальной суммы для вывода
+  // Set maximum amount for withdrawal
   const handleSetMaxAmount = () => {
     setWithdrawAmount(Math.floor(gameState.coins).toString())
   }
@@ -144,11 +144,11 @@ export function WalletView({ gameState }: WalletViewProps) {
       setIsLoading(true)
       if (gameState.walletAddress) {
         try {
-          // Симуляция получения баланса кошелька
-          // В реальном приложении здесь был бы запрос к API
+          // Simulate getting wallet balance
+          // In a real app, this would be an API request
           setWalletBalance(Math.random() * 5 + 0.1)
         } catch (error) {
-          console.error("Не удалось получить баланс кошелька", error)
+          console.error("Failed to get wallet balance", error)
           setWalletBalance(null)
         }
       }
@@ -157,25 +157,28 @@ export function WalletView({ gameState }: WalletViewProps) {
     
     fetchWalletData()
     
-    // Обновление данных кошелька каждые 30 секунд
+    // Update wallet data every 30 seconds
     const interval = setInterval(fetchWalletData, 30000)
     
     return () => clearInterval(interval)
   }, [gameState.walletAddress])
 
-  return (
-    <div className="py-6">
-      <h2 className="text-2xl font-bold mb-1 text-primary">TON Кошелек</h2>
-      <p className="text-muted-foreground mb-6">Подключите TON кошелек, чтобы выводить $KNYE</p>
+  // Calculate USD value
+  const usdValue = (gameState.coins * KNYE_TO_USD_RATE).toFixed(2);
 
-      <Card className="bg-secondary border-none mb-6">
+  return (
+    <div className="py-4">
+      <h2 className="text-2xl font-bold mb-1 text-primary">TON Wallet</h2>
+      <p className="text-muted-foreground mb-4">Connect your TON wallet to withdraw $KNYE</p>
+
+      <Card className="bg-secondary border-none mb-4">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <WalletIcon className="w-5 h-5 text-primary" />
-            Ваш кошелек
+            Your Wallet
           </CardTitle>
           <CardDescription>
-            Подключите TON кошелек, чтобы управлять и выводить ваши $KNYE
+            Connect your TON wallet to manage and withdraw your $KNYE
           </CardDescription>
         </CardHeader>
 
@@ -185,7 +188,7 @@ export function WalletView({ gameState }: WalletViewProps) {
               <div className="flex items-start">
                 <CheckCircle className="w-5 h-5 text-primary mr-2 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
-                  <div className="text-sm text-muted-foreground font-medium">Подключенный кошелек:</div>
+                  <div className="text-sm text-muted-foreground font-medium">Connected wallet:</div>
                   <div className="text-primary text-sm break-all flex items-center justify-between">
                     <span className="mr-2">{gameState.walletAddress}</span>
                     <div className="flex gap-2">
@@ -234,7 +237,7 @@ export function WalletView({ gameState }: WalletViewProps) {
                   
                   {walletBalance !== null && (
                     <div className="mt-2 text-sm flex">
-                      <span className="text-muted-foreground">Баланс TON:</span>
+                      <span className="text-muted-foreground">TON Balance:</span>
                       <span className="text-primary ml-2">{walletBalance.toLocaleString()} TON</span>
                     </div>
                   )}
@@ -250,10 +253,10 @@ export function WalletView({ gameState }: WalletViewProps) {
               {isConnecting ? (
                 <>
                   <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></div>
-                  Подключение...
+                  Connecting...
                 </>
               ) : (
-                "Подключить TON Кошелек"
+                "Connect TON Wallet"
               )}
             </Button>
           )}
@@ -261,7 +264,7 @@ export function WalletView({ gameState }: WalletViewProps) {
           {error && (
             <Alert variant="destructive" className="mt-3">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Ошибка</AlertTitle>
+              <AlertTitle>Error</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
@@ -273,25 +276,31 @@ export function WalletView({ gameState }: WalletViewProps) {
           <TabsList className="mb-4">
             <TabsTrigger value="withdraw" className="flex items-center gap-2">
               <ArrowRightIcon className="w-4 h-4" />
-              Вывод
+              Withdraw
             </TabsTrigger>
             <TabsTrigger value="boost" className="flex items-center gap-2">
               <ZapIcon className="w-4 h-4" />
-              Буст
+              Boost
             </TabsTrigger>
           </TabsList>
           
           <TabsContent value="withdraw">
             <Card className="bg-secondary border-none">
               <CardHeader>
-                <CardTitle>Вывод $KNYE</CardTitle>
-                <CardDescription>Конвертируйте ваши $KNYE в TON токены</CardDescription>
+                <CardTitle>Withdraw $KNYE</CardTitle>
+                <CardDescription>Convert your $KNYE to TON tokens</CardDescription>
               </CardHeader>
               
               <CardContent>
                 <div className="bg-accent p-3 rounded-lg mb-4">
-                  <div className="text-sm text-muted-foreground mb-1">Доступный баланс:</div>
-                  <div className="text-2xl font-bold text-primary">{gameState.coins.toLocaleString()} $KNYE</div>
+                  <div className="text-sm text-muted-foreground mb-1">Available balance:</div>
+                  <div className="flex items-center text-2xl font-bold text-primary">
+                    {gameState.coins.toLocaleString()} $KNYE
+                    <Badge variant="outline" className="ml-2 bg-background text-muted-foreground text-xs">
+                      <DollarSign className="w-3 h-3 mr-0.5" />
+                      {usdValue}
+                    </Badge>
+                  </div>
                 </div>
 
                 <div className="flex gap-2 mb-4">
@@ -299,18 +308,18 @@ export function WalletView({ gameState }: WalletViewProps) {
                     type="number"
                     min="1"
                     step="1"
-                    placeholder="Сумма для вывода"
+                    placeholder="Amount to withdraw"
                     value={withdrawAmount}
                     onChange={(e) => setWithdrawAmount(e.target.value.replace(/^0+/, ""))}
                     className="bg-accent border-accent text-primary"
                   />
                   <Button onClick={handleSetMaxAmount} variant="outline" className="shrink-0">
-                    Макс
+                    Max
                   </Button>
                 </div>
 
                 <div className="text-sm text-muted-foreground mb-4">
-                  Минимальная сумма вывода: {MIN_WITHDRAWAL.toLocaleString()} $KNYE
+                  Minimum withdrawal amount: {MIN_WITHDRAWAL.toLocaleString()} $KNYE
                 </div>
               </CardContent>
               
@@ -323,11 +332,11 @@ export function WalletView({ gameState }: WalletViewProps) {
                   {withdrawing ? (
                     <>
                       <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent"></div>
-                      Обработка...
+                      Processing...
                     </>
                   ) : (
                     <>
-                      Вывести $KNYE
+                      Withdraw $KNYE
                       <ArrowRightIcon className="w-4 h-4" />
                     </>
                   )}
@@ -344,9 +353,9 @@ export function WalletView({ gameState }: WalletViewProps) {
               >
                 <Alert className="border-green-500 bg-green-500/10">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <AlertTitle className="text-green-500">Успех</AlertTitle>
+                  <AlertTitle className="text-green-500">Success</AlertTitle>
                   <AlertDescription className="text-green-500/80">
-                    Вывод успешно обработан!
+                    Withdrawal successfully processed!
                   </AlertDescription>
                 </Alert>
               </motion.div>
@@ -356,65 +365,74 @@ export function WalletView({ gameState }: WalletViewProps) {
           <TabsContent value="boost">
             <Card className="bg-secondary border-none">
               <CardHeader>
-                <CardTitle>Ускорьте свой майнинг</CardTitle>
-                <CardDescription>Потратьте TON, чтобы мгновенно увеличить свою добычу $KNYE</CardDescription>
+                <CardTitle>Boost Your Mining</CardTitle>
+                <CardDescription>Spend TON to instantly increase your $KNYE earnings</CardDescription>
               </CardHeader>
               
               <CardContent>
                 <div className="space-y-4">
                   <div className="bg-accent p-4 rounded-lg flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium text-foreground">Малый буст</h4>
-                      <p className="text-sm text-muted-foreground">+5,000 $KNYE мгновенно</p>
+                      <h4 className="font-medium text-foreground">Small Boost</h4>
+                      <p className="text-sm text-muted-foreground">+5,000 $KNYE instantly</p>
                     </div>
-                    <Button 
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                      onClick={() => {
-                        gameState.addCoins(5000)
-                        showAlert("Получено +5,000 $KNYE!")
-                      }}
-                    >
-                      0.1 TON
-                    </Button>
+                    <div className="flex flex-col items-end">
+                      <Button 
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                        onClick={() => {
+                          gameState.addCoins(5000)
+                          showAlert("Received +5,000 $KNYE!")
+                        }}
+                      >
+                        0.1 TON
+                      </Button>
+                      <span className="text-xs text-muted-foreground mt-1">≈ ${(5000 * KNYE_TO_USD_RATE).toFixed(2)}</span>
+                    </div>
                   </div>
                   
                   <div className="bg-accent p-4 rounded-lg flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium text-foreground">Средний буст</h4>
-                      <p className="text-sm text-muted-foreground">+25,000 $KNYE мгновенно</p>
+                      <h4 className="font-medium text-foreground">Medium Boost</h4>
+                      <p className="text-sm text-muted-foreground">+25,000 $KNYE instantly</p>
                     </div>
-                    <Button 
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                      onClick={() => {
-                        gameState.addCoins(25000)
-                        showAlert("Получено +25,000 $KNYE!")
-                      }}
-                    >
-                      0.5 TON
-                    </Button>
+                    <div className="flex flex-col items-end">
+                      <Button 
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                        onClick={() => {
+                          gameState.addCoins(25000)
+                          showAlert("Received +25,000 $KNYE!")
+                        }}
+                      >
+                        0.5 TON
+                      </Button>
+                      <span className="text-xs text-muted-foreground mt-1">≈ ${(25000 * KNYE_TO_USD_RATE).toFixed(2)}</span>
+                    </div>
                   </div>
                   
                   <div className="bg-accent p-4 rounded-lg flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium text-foreground">Большой буст</h4>
-                      <p className="text-sm text-muted-foreground">+100,000 $KNYE мгновенно</p>
+                      <h4 className="font-medium text-foreground">Large Boost</h4>
+                      <p className="text-sm text-muted-foreground">+100,000 $KNYE instantly</p>
                     </div>
-                    <Button 
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                      onClick={() => {
-                        gameState.addCoins(100000)
-                        showAlert("Получено +100,000 $KNYE!")
-                      }}
-                    >
-                      1.5 TON
-                    </Button>
+                    <div className="flex flex-col items-end">
+                      <Button 
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                        onClick={() => {
+                          gameState.addCoins(100000)
+                          showAlert("Received +100,000 $KNYE!")
+                        }}
+                      >
+                        1.5 TON
+                      </Button>
+                      <span className="text-xs text-muted-foreground mt-1">≈ ${(100000 * KNYE_TO_USD_RATE).toFixed(2)}</span>
+                    </div>
                   </div>
                 </div>
               </CardContent>
               
               <CardFooter className="flex-col">
                 <p className="text-sm text-muted-foreground mb-2 text-center w-full">
-                  Примечание: Это симуляция. В реальном приложении это были бы настоящие транзакции TON.
+                  Note: This is a simulation. In a real app, these would be actual TON transactions.
                 </p>
               </CardFooter>
             </Card>

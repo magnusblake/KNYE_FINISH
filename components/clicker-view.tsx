@@ -106,7 +106,7 @@ export function ClickerView({ gameState }: ClickerViewProps) {
           onClick={handleClick}
         >
           <Image
-            src="/api/placeholder/180/180"
+            src="/public/knye.jpg"
             alt="Kanye West"
             width={coinSize}
             height={coinSize}

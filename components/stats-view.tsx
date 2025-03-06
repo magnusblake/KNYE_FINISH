@@ -25,11 +25,11 @@ export function StatsView({ gameState }: StatsViewProps) {
   // Format large numbers
   const formatNumber = (num: number): string => {
     if (num >= 1000000) {
-      return (num / 1000000).toFixed(2) + 'M'
+      return Math.floor(num / 1000000) + 'M'
     } else if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'K'
+      return Math.floor(num / 1000) + 'K'
     } else {
-      return num.toFixed(0)
+      return Math.floor(num).toString()
     }
   }
   
@@ -41,11 +41,11 @@ export function StatsView({ gameState }: StatsViewProps) {
   }
   
   // Calculate more engaging stats
-  const clicksPerSecond = gameState.totalClicks / Math.max(1, gameState.totalPlayTime)
-  const avgCoinsPerClick = gameState.coins / Math.max(1, gameState.totalClicks)
-  const passivePercentage = gameState.coinsPerSecond > 0 
-    ? (gameState.coinsPerSecond / (gameState.coinsPerSecond + gameState.coinsPerClick * clicksPerSecond)) * 100
-    : 0
+  const clicksPerSecond = Math.floor(gameState.totalClicks / Math.max(1, gameState.totalPlayTime))
+  const avgCoinsPerClick = Math.floor(gameState.coins / Math.max(1, gameState.totalClicks))
+  const passivePercentage = Math.floor(gameState.coinsPerSecond > 0 
+      ? (gameState.coinsPerSecond / (gameState.coinsPerSecond + gameState.coinsPerClick * clicksPerSecond)) * 100
+      : 0)
     
   // Check for unclaimed achievements
   useEffect(() => {
@@ -77,13 +77,13 @@ export function StatsView({ gameState }: StatsViewProps) {
         </CardContent>
       </Card>
       
-      <Tabs value={activeStatsTab} onValueChange={(value: string) => setActiveStatsTab(value as "general" | "achievements")}>
-        <TabsList className="mb-4">
-          <TabsTrigger value="general" className="flex items-center gap-2">
+      <Tabs value={activeStatsTab} onValueChange={(value: string) => setActiveStatsTab(value as "general" | "achievements")} className="w-full">
+        <TabsList className="mb-4 w-full">
+          <TabsTrigger value="general" className="flex-1 flex items-center justify-center gap-2">
             <TrendingUp className="w-4 h-4" />
             General Stats
           </TabsTrigger>
-          <TabsTrigger value="achievements" className="flex items-center gap-2 relative">
+          <TabsTrigger value="achievements" className="flex-1 flex items-center justify-center gap-2 relative">
             <Trophy className="w-4 h-4" />
             Achievements
             {hasUnclaimedAchievements && (
@@ -93,65 +93,58 @@ export function StatsView({ gameState }: StatsViewProps) {
         </TabsList>
         
         <TabsContent value="general">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <StatCard
-              icon={<ZapIcon className="w-6 h-6" />}
-              title="Clicking Power"
-              value={`${gameState.coinsPerClick.toFixed(1)} $KNYE/click`}
-              subtext={`Total clicks: ${gameState.totalClicks.toLocaleString()}`}
-            />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <StatCard
+            icon={<ZapIcon className="w-6 h-6" />}
+            title="Clicking Power"
+            value={`${Math.floor(gameState.coinsPerClick)} $KNYE/click`}
+            subtext={`Total clicks: ${gameState.totalClicks.toLocaleString()}`}
+          />
 
-            <StatCard
-              icon={<Disc3 className="w-6 h-6" />}
-              title="Passive Income"
-              value={`${gameState.coinsPerSecond.toFixed(1)} $KNYE/s`}
-              subtext={`${passivePercentage.toFixed(0)}% of your income is passive`}
-            />
+          <StatCard
+            icon={<Disc3 className="w-6 h-6" />}
+            title="Passive Income"
+            value={`${Math.floor(gameState.coinsPerSecond)} $KNYE/s`}
+            subtext={`${Math.floor(passivePercentage)}% of your income is passive`}
+          />
 
-            <StatCard
-              icon={<TrendingUp className="w-6 h-6" />}
-              title="Upgrades"
-              value={`${gameState.totalUpgradesPurchased} purchased`}
-              subtext={`Total spent: ${gameState.totalUpgradesCost.toLocaleString()} $KNYE`}
-            />
+          <StatCard
+            icon={<TrendingUp className="w-6 h-6" />}
+            title="Upgrades"
+            value={`${gameState.totalUpgradesPurchased} purchased`}
+            subtext={`Total spent: ${Math.floor(gameState.totalUpgradesCost).toLocaleString()} $KNYE`}
+          />
 
-            <StatCard
-              icon={<Clock className="w-6 h-6" />}
-              title="Play Time"
-              value={formatPlayTime(gameState.totalPlayTime)}
-              subtext={`First played: ${new Date(gameState.firstPlayTimestamp).toLocaleDateString()}`}
-            />
+          <StatCard
+            icon={<Clock className="w-6 h-6" />}
+            title="Play Time"
+            value={formatPlayTime(gameState.totalPlayTime)}
+            subtext={`First played: ${new Date(gameState.firstPlayTimestamp).toLocaleDateString()}`}
+          />
 
+          <StatCard
+            icon={<CoinsIcon className="w-6 h-6" />}
+            title="Lifetime Earnings"
+            value={`${formatNumber(gameState.stats.totalCoinsEarned)} $KNYE`}
+            subtext={`Average: ${Math.floor(avgCoinsPerClick)} coins per click`}
+          />
+          
+          {gameState.prestigeLevel > 0 && (
             <StatCard
-              icon={<CoinsIcon className="w-6 h-6" />}
-              title="Lifetime Earnings"
-              value={`${formatNumber(gameState.stats.totalCoinsEarned)} $KNYE`}
-              subtext={`Average: ${avgCoinsPerClick.toFixed(1)} coins per click`}
+              icon={<Sparkles className="w-6 h-6" />}
+              title="Prestige Level"
+              value={`Level ${gameState.prestigeLevel}`}
+              subtext={`${Math.floor(gameState.prestigeMultiplier)}x earnings multiplier`}
             />
-            
-            <StatCard
-              icon={<Target className="w-6 h-6" />}
-              title="Best Performance"
-              value={`${clicksPerSecond.toFixed(1)} clicks/sec`}
-              subtext={`Efficiency: ${Math.floor(clicksPerSecond * gameState.coinsPerClick)} coins/sec`}
-            />
-            
-            {gameState.prestigeLevel > 0 && (
-              <StatCard
-                icon={<Sparkles className="w-6 h-6" />}
-                title="Prestige Level"
-                value={`Level ${gameState.prestigeLevel}`}
-                subtext={`${gameState.prestigeMultiplier.toFixed(2)}x earnings multiplier`}
-              />
-            )}
+          )}
 
-            <StatCard
-              icon={<Users className="w-6 h-6" />}
-              title="Online Users"
-              value={gameState.onlineUsers.toString()}
-              subtext="Players mining $KNYE right now"
-            />
-          </div>
+          <StatCard
+            icon={<Users className="w-6 h-6" />}
+            title="Online Users"
+            value={gameState.onlineUsers.toString()}
+            subtext="Players mining $KNYE right now"
+          />
+        </div>
         </TabsContent>
         
         <TabsContent value="achievements">

@@ -97,7 +97,10 @@ export function ClickerView({ gameState }: ClickerViewProps) {
 
   return (
     <div ref={containerRef} className="flex flex-col items-center justify-start h-full">
-      <div className="relative mb-6 mt-4">
+      {/* Add this new header */}
+      <h1 className="text-3xl font-bold mb-4 mt-8 text-primary">Earn $KNYE</h1>
+      
+      <div className="relative mb-6">
         <motion.div
           ref={clickerRef}
           className="relative z-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg cursor-pointer overflow-hidden transition-transform duration-100"
@@ -124,17 +127,16 @@ export function ClickerView({ gameState }: ClickerViewProps) {
           {clickEffect.map((effect) => (
             <motion.div
               key={effect.id}
-              initial={{ opacity: 1, scale: 0.8, x: effect.x - 12, y: effect.y - 12 }}
-              animate={{ opacity: 0, scale: 1.5, y: effect.y - 50 }}
+              initial={{ opacity: 1, scale: 0.8, x: effect.x - 20, y: effect.y - 20 }}
+              animate={{ opacity: 0, scale: 1.2, y: effect.y - 40 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.8 }}
-              className="absolute text-primary font-bold pointer-events-none z-20"
+              className="absolute text-primary font-bold pointer-events-none z-20 text-lg"
             >
               +{effect.amount}
             </motion.div>
           ))}
         </AnimatePresence>
-      </div>
 
       <Card className="w-full max-w-md mb-6">
         <CardHeader>

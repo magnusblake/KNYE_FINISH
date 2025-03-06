@@ -199,10 +199,12 @@ export function UpgradesView({ gameState }: UpgradesViewProps) {
     maxLevel: upgrade.maxLevel,
     effect:
       upgrade.name === "Energy Drink"
-        ? `+${Math.floor(upgrade.effect)} max energy` // Integer values
+        ? `+${Math.floor(upgrade.effect)} max energy`
         : upgrade.name === "Power Nap"
-          ? `+${Math.floor(upgrade.effect)} energy/sec` // Integer values
-          : `+${Math.floor(upgrade.effect)} coins per second`, // Integer values
+          ? `+${Math.floor(upgrade.effect)} energy/sec`
+          : upgrade.id.startsWith("click") 
+            ? `+${Math.floor(upgrade.effect)} coins/click`
+            : `+${Math.floor(upgrade.effect)} coins/sec`,
     onPurchase: () => gameState.purchasePassiveUpgrade(index),
     canAfford: gameState.coins >= upgrade.cost,
     locked: !upgrade.unlocked,
@@ -264,18 +266,18 @@ export function UpgradesView({ gameState }: UpgradesViewProps) {
         </Card>
       )}
       
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-3">
-          <TabsTrigger value="click" className="flex items-center gap-2">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="mb-3 w-full">
+          <TabsTrigger value="click" className="flex-1 flex items-center justify-center gap-2">
             <Mic2Icon className="w-4 h-4" />
             Click Upgrades
           </TabsTrigger>
-          <TabsTrigger value="passive" className="flex items-center gap-2">
+          <TabsTrigger value="passive" className="flex-1 flex items-center justify-center gap-2">
             <Disc3Icon className="w-4 h-4" />
             Passive Income
           </TabsTrigger>
         </TabsList>
-        
+              
         <TabsContent value="click" className="mt-0">
           {clickUpgrades.map((upgrade) => (
             <UpgradeItem key={upgrade.id} {...upgrade} tabColor="bg-primary" />

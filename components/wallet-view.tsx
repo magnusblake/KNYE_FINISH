@@ -19,6 +19,11 @@ interface WalletViewProps {
 }
 
 export function WalletView({ gameState }: WalletViewProps) {
+  const maskAddress = (address: string): string => {
+    if (!address || address.length < 10) return address;
+    return `${address.substring(0, 5)}***${address.substring(address.length - 5)}`;
+  };
+
   const [isConnecting, setIsConnecting] = useState(false)
   const [error, setError] = useState("")
   const [withdrawAmount, setWithdrawAmount] = useState("")
@@ -190,7 +195,7 @@ export function WalletView({ gameState }: WalletViewProps) {
                 <div className="flex-1">
                   <div className="text-sm text-muted-foreground font-medium">Connected wallet:</div>
                   <div className="text-primary text-sm break-all flex items-center justify-between">
-                    <span className="mr-2">{gameState.walletAddress}</span>
+                    <span className="mr-2">{maskAddress(gameState.walletAddress)}</span>
                     <div className="flex gap-2">
                       <Button 
                         variant="ghost" 
@@ -204,43 +209,8 @@ export function WalletView({ gameState }: WalletViewProps) {
                           <CopyIcon className="h-4 w-4 text-muted-foreground" />
                         )}
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-7 w-7"
-                        onClick={() => setShowQRCode(!showQRCode)}
-                      >
-                        <QrCodeIcon className="h-4 w-4 text-muted-foreground" />
-                      </Button>
                     </div>
                   </div>
-                  
-                  <AnimatePresence>
-                    {showQRCode && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="mt-4 bg-background p-4 rounded-lg overflow-hidden"
-                      >
-                        <div className="flex justify-center">
-                          {/* Placeholder for QR code - in a real app you would generate it */}
-                          <div className="w-32 h-32 border-2 border-dashed border-muted-foreground rounded flex items-center justify-center">
-                            <span className="text-xs text-muted-foreground text-center">
-                              QR Code<br />placeholder
-                            </span>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                  
-                  {walletBalance !== null && (
-                    <div className="mt-2 text-sm flex">
-                      <span className="text-muted-foreground">TON Balance:</span>
-                      <span className="text-primary ml-2">{walletBalance.toLocaleString()} TON</span>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -269,16 +239,25 @@ export function WalletView({ gameState }: WalletViewProps) {
             </Alert>
           )}
         </CardContent>
+
+          {error && (
+            <Alert variant="destructive" className="mt-3">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
       </Card>
 
       {gameState.walletAddress && (
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="withdraw" className="flex items-center gap-2">
+          <TabsList className="mb-4 w-full">
+            <TabsTrigger value="withdraw" className="flex-1 flex items-center justify-center gap-2">
               <ArrowRightIcon className="w-4 h-4" />
               Withdraw
             </TabsTrigger>
-            <TabsTrigger value="boost" className="flex items-center gap-2">
+            <TabsTrigger value="boost" className="flex-1 flex items-center justify-center gap-2">
               <ZapIcon className="w-4 h-4" />
               Boost
             </TabsTrigger>

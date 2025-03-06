@@ -101,14 +101,14 @@ export function GameHeader({ gameState }: GameHeaderProps) {
       <AnimatePresence>
         {showLevelUp && (
           <motion.div 
-            className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50"
+            className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-xs px-4"
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
           >
-            <div className="bg-primary text-primary-foreground px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
+            <div className="bg-primary text-primary-foreground px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 justify-center">
               <Rocket className="w-5 h-5" />
-              <span className="font-bold">Level Up! You reached level {gameState.level}</span>
+              <span className="font-bold text-sm whitespace-nowrap">Level Up! Level {gameState.level}</span>
             </div>
           </motion.div>
         )}

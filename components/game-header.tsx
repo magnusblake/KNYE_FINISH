@@ -98,17 +98,18 @@ export function GameHeader({ gameState }: GameHeaderProps) {
         </div>
       </div>
       
+      {/* Fixed level up notification to stay within screen boundaries */}
       <AnimatePresence>
         {showLevelUp && (
           <motion.div 
-            className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-xs px-4"
+            className="fixed left-1/2 top-20 transform -translate-x-1/2 z-50 w-auto px-4 max-w-[90vw]"
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
           >
-            <div className="bg-primary text-primary-foreground px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 justify-center">
+            <div className="bg-primary text-primary-foreground px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 justify-center whitespace-nowrap">
               <Rocket className="w-5 h-5" />
-              <span className="font-bold text-sm whitespace-nowrap">Level Up! Level {gameState.level}</span>
+              <span className="font-bold text-sm">Level Up! Level {gameState.level}</span>
             </div>
           </motion.div>
         )}

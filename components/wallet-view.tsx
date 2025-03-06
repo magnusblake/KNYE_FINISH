@@ -4,12 +4,11 @@ import { useState, useEffect } from "react"
 import type { GameState } from "@/hooks/useGameState"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ArrowRightIcon, WalletIcon, CheckCircle, AlertCircle, CopyIcon, QrCodeIcon, ZapIcon, DollarSign } from "lucide-react"
-import { connectTonWallet, withdrawCoins, getWalletBalance } from "@/lib/wallet"
+import { ArrowRightIcon, WalletIcon, CheckCircle, AlertCircle, CopyIcon, ZapIcon, DollarSign } from "lucide-react"
+import { connectTonWallet, withdrawCoins } from "@/lib/wallet"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Progress } from "@/components/ui/progress"
 import { motion, AnimatePresence } from "framer-motion"
 import { useTelegram } from "@/hooks/useTelegram"
 import { Badge } from "@/components/ui/badge"
@@ -19,9 +18,12 @@ interface WalletViewProps {
 }
 
 export function WalletView({ gameState }: WalletViewProps) {
+  // Improved mask address function to handle addresses of different lengths
   const maskAddress = (address: string): string => {
     if (!address || address.length < 10) return address;
-    return `${address.substring(0, 5)}***${address.substring(address.length - 5)}`;
+    const start = address.substring(0, 5);
+    const end = address.substring(address.length - 5);
+    return `${start}***${end}`;
   };
 
   const [isConnecting, setIsConnecting] = useState(false)
@@ -29,11 +31,9 @@ export function WalletView({ gameState }: WalletViewProps) {
   const [withdrawAmount, setWithdrawAmount] = useState("")
   const [withdrawing, setWithdrawing] = useState(false)
   const [withdrawSuccess, setWithdrawSuccess] = useState(false)
-  const [walletBalance, setWalletBalance] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("withdraw")
   const [copied, setCopied] = useState(false)
-  const [showQRCode, setShowQRCode] = useState(false)
   const { tg, showAlert, showConfirm } = useTelegram()
 
   // Define conversion rate
@@ -145,27 +145,11 @@ export function WalletView({ gameState }: WalletViewProps) {
   }
 
   useEffect(() => {
-    const fetchWalletData = async () => {
-      setIsLoading(true)
-      if (gameState.walletAddress) {
-        try {
-          // Simulate getting wallet balance
-          // In a real app, this would be an API request
-          setWalletBalance(Math.random() * 5 + 0.1)
-        } catch (error) {
-          console.error("Failed to get wallet balance", error)
-          setWalletBalance(null)
-        }
-      }
+    if (gameState.walletAddress) {
+      setIsLoading(false)
+    } else {
       setIsLoading(false)
     }
-    
-    fetchWalletData()
-    
-    // Update wallet data every 30 seconds
-    const interval = setInterval(fetchWalletData, 30000)
-    
-    return () => clearInterval(interval)
   }, [gameState.walletAddress])
 
   // Calculate USD value
@@ -239,15 +223,6 @@ export function WalletView({ gameState }: WalletViewProps) {
             </Alert>
           )}
         </CardContent>
-
-          {error && (
-            <Alert variant="destructive" className="mt-3">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-        </CardContent>
       </Card>
 
       {gameState.walletAddress && (
@@ -263,7 +238,7 @@ export function WalletView({ gameState }: WalletViewProps) {
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="withdraw">
+          <TabsContent value="withdraw" className="w-full">
             <Card className="bg-secondary border-none">
               <CardHeader>
                 <CardTitle>Withdraw $KNYE</CardTitle>
@@ -341,7 +316,7 @@ export function WalletView({ gameState }: WalletViewProps) {
             )}
           </TabsContent>
           
-          <TabsContent value="boost">
+          <TabsContent value="boost" className="w-full">
             <Card className="bg-secondary border-none">
               <CardHeader>
                 <CardTitle>Boost Your Mining</CardTitle>

@@ -40,6 +40,7 @@ interface UpgradeItemProps {
   level: number
   maxLevel: number
   effect: string
+  baseEffect: number
   onPurchase: () => void
   canAfford: boolean
   icon: React.ReactNode
@@ -55,6 +56,7 @@ function UpgradeItem({
   level,
   maxLevel,
   effect,
+  baseEffect,
   onPurchase,
   canAfford,
   icon,
@@ -154,6 +156,7 @@ export function UpgradesView({ gameState }: UpgradesViewProps) {
     }
   }
   
+  // FIX: Correct display for upgrade effects showing the actual effect value, not calculated values
   const clickUpgrades = gameState.clickUpgrades.map((upgrade, index) => ({
     id: `click-${index}`,
     title: upgrade.name,
@@ -161,7 +164,8 @@ export function UpgradesView({ gameState }: UpgradesViewProps) {
     cost: Math.floor(upgrade.cost),
     level: upgrade.level,
     maxLevel: upgrade.maxLevel,
-    effect: `+${Math.floor(upgrade.effect)} coins per click`, // Integer value
+    baseEffect: upgrade.effect,
+    effect: `+${Math.floor(upgrade.effect)} coins per click`,
     onPurchase: () => gameState.purchaseClickUpgrade(index),
     canAfford: gameState.coins >= upgrade.cost,
     locked: !upgrade.unlocked,
@@ -197,12 +201,13 @@ export function UpgradesView({ gameState }: UpgradesViewProps) {
     cost: Math.floor(upgrade.cost),
     level: upgrade.level,
     maxLevel: upgrade.maxLevel,
+    baseEffect: upgrade.effect,
     effect:
       upgrade.name === "Energy Drink"
         ? `+${Math.floor(upgrade.effect)} max energy`
         : upgrade.name === "Power Nap"
           ? `+${Math.floor(upgrade.effect)} energy/sec`
-          : upgrade.id.startsWith("click") 
+          : upgrade.id?.startsWith("click") 
             ? `+${Math.floor(upgrade.effect)} coins/click`
             : `+${Math.floor(upgrade.effect)} coins/sec`,
     onPurchase: () => gameState.purchasePassiveUpgrade(index),
@@ -278,13 +283,13 @@ export function UpgradesView({ gameState }: UpgradesViewProps) {
           </TabsTrigger>
         </TabsList>
               
-        <TabsContent value="click" className="mt-0">
+        <TabsContent value="click" className="mt-0 w-full">
           {clickUpgrades.map((upgrade) => (
             <UpgradeItem key={upgrade.id} {...upgrade} tabColor="bg-primary" />
           ))}
         </TabsContent>
         
-        <TabsContent value="passive" className="mt-0">
+        <TabsContent value="passive" className="mt-0 w-full">
           {passiveUpgrades.map((upgrade) => (
             <UpgradeItem key={upgrade.id} {...upgrade} tabColor="bg-primary" />
           ))}

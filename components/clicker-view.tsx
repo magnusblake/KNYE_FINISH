@@ -50,7 +50,7 @@ export function ClickerView({ gameState }: ClickerViewProps) {
       // Calculate earned coins (integer values)
       const earnedCoins = Math.floor(gameState.coinsPerClick);
       
-      // Position the effect relative to click position
+      // Position the effect relative to click position - FIX: Show effect right at click position
       const newEffect = { id: Date.now(), x, y, amount: earnedCoins }
       setClickEffect((prev) => [...prev, newEffect])
 
@@ -97,8 +97,9 @@ export function ClickerView({ gameState }: ClickerViewProps) {
 
   return (
     <div ref={containerRef} className="flex flex-col items-center justify-start h-full">
-      {/* Add this new header */}
-      <h1 className="text-3xl font-bold mb-4 mt-8 text-primary">Earn $KNYE</h1>
+      {/* Added heading as requested */}
+      <h1 className="text-3xl font-bold mb-2 mt-8 text-primary">Earn $KNYE</h1>
+      <p className="text-muted-foreground mb-6 text-center">Click the coin to mine cryptocurrency</p>
       
       <div className="relative mb-6">
         <motion.div
@@ -127,8 +128,8 @@ export function ClickerView({ gameState }: ClickerViewProps) {
           {clickEffect.map((effect) => (
             <motion.div
               key={effect.id}
-              initial={{ opacity: 1, scale: 0.8, x: effect.x - 20, y: effect.y - 20 }}
-              animate={{ opacity: 0, scale: 1.2, y: effect.y - 40 }}
+              initial={{ opacity: 1, scale: 0.8, x: effect.x, y: effect.y }} // Fixed position to be directly on click point
+              animate={{ opacity: 0, scale: 1.2, y: effect.y - 30 }} // Only animate slightly upward
               exit={{ opacity: 0 }}
               transition={{ duration: 0.8 }}
               className="absolute text-primary font-bold pointer-events-none z-20 text-lg"
@@ -137,6 +138,7 @@ export function ClickerView({ gameState }: ClickerViewProps) {
             </motion.div>
           ))}
         </AnimatePresence>
+      </div>
 
       <Card className="w-full max-w-md mb-6">
         <CardHeader>

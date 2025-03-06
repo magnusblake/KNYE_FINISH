@@ -33,14 +33,14 @@ export function StatsView({ gameState }: StatsViewProps) {
     }
   }
   
-  // Format time from seconds to hours & minutes
+  // Format time from seconds to hours & minutes - removed seconds for simplicity
   const formatPlayTime = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600)
     const minutes = Math.floor((seconds % 3600) / 60)
     return `${hours}h ${minutes}m`
   }
   
-  // Calculate more engaging stats
+  // Calculate more engaging stats - all integers now
   const clicksPerSecond = Math.floor(gameState.totalClicks / Math.max(1, gameState.totalPlayTime))
   const avgCoinsPerClick = Math.floor(gameState.coins / Math.max(1, gameState.totalClicks))
   const passivePercentage = Math.floor(gameState.coinsPerSecond > 0 
@@ -92,62 +92,62 @@ export function StatsView({ gameState }: StatsViewProps) {
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="general">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <StatCard
-            icon={<ZapIcon className="w-6 h-6" />}
-            title="Clicking Power"
-            value={`${Math.floor(gameState.coinsPerClick)} $KNYE/click`}
-            subtext={`Total clicks: ${gameState.totalClicks.toLocaleString()}`}
-          />
-
-          <StatCard
-            icon={<Disc3 className="w-6 h-6" />}
-            title="Passive Income"
-            value={`${Math.floor(gameState.coinsPerSecond)} $KNYE/s`}
-            subtext={`${Math.floor(passivePercentage)}% of your income is passive`}
-          />
-
-          <StatCard
-            icon={<TrendingUp className="w-6 h-6" />}
-            title="Upgrades"
-            value={`${gameState.totalUpgradesPurchased} purchased`}
-            subtext={`Total spent: ${Math.floor(gameState.totalUpgradesCost).toLocaleString()} $KNYE`}
-          />
-
-          <StatCard
-            icon={<Clock className="w-6 h-6" />}
-            title="Play Time"
-            value={formatPlayTime(gameState.totalPlayTime)}
-            subtext={`First played: ${new Date(gameState.firstPlayTimestamp).toLocaleDateString()}`}
-          />
-
-          <StatCard
-            icon={<CoinsIcon className="w-6 h-6" />}
-            title="Lifetime Earnings"
-            value={`${formatNumber(gameState.stats.totalCoinsEarned)} $KNYE`}
-            subtext={`Average: ${Math.floor(avgCoinsPerClick)} coins per click`}
-          />
-          
-          {gameState.prestigeLevel > 0 && (
+        <TabsContent value="general" className="w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <StatCard
-              icon={<Sparkles className="w-6 h-6" />}
-              title="Prestige Level"
-              value={`Level ${gameState.prestigeLevel}`}
-              subtext={`${Math.floor(gameState.prestigeMultiplier)}x earnings multiplier`}
+              icon={<ZapIcon className="w-6 h-6" />}
+              title="Clicking Power"
+              value={`${Math.floor(gameState.coinsPerClick)} $KNYE/click`}
+              subtext={`Total clicks: ${gameState.totalClicks.toLocaleString()}`}
             />
-          )}
 
-          <StatCard
-            icon={<Users className="w-6 h-6" />}
-            title="Online Users"
-            value={gameState.onlineUsers.toString()}
-            subtext="Players mining $KNYE right now"
-          />
-        </div>
+            <StatCard
+              icon={<Disc3 className="w-6 h-6" />}
+              title="Passive Income"
+              value={`${Math.floor(gameState.coinsPerSecond)} $KNYE/s`}
+              subtext={`${Math.floor(passivePercentage)}% of your income is passive`}
+            />
+
+            <StatCard
+              icon={<TrendingUp className="w-6 h-6" />}
+              title="Upgrades"
+              value={`${gameState.totalUpgradesPurchased} purchased`}
+              subtext={`Total spent: ${Math.floor(gameState.totalUpgradesCost).toLocaleString()} $KNYE`}
+            />
+
+            <StatCard
+              icon={<Clock className="w-6 h-6" />}
+              title="Play Time"
+              value={formatPlayTime(gameState.totalPlayTime)}
+              subtext={`First played: ${new Date(gameState.firstPlayTimestamp).toLocaleDateString()}`}
+            />
+
+            <StatCard
+              icon={<CoinsIcon className="w-6 h-6" />}
+              title="Lifetime Earnings"
+              value={`${formatNumber(gameState.stats.totalCoinsEarned)} $KNYE`}
+              subtext={`Average: ${Math.floor(avgCoinsPerClick)} coins per click`}
+            />
+            
+            {gameState.prestigeLevel > 0 && (
+              <StatCard
+                icon={<Sparkles className="w-6 h-6" />}
+                title="Prestige Level"
+                value={`Level ${gameState.prestigeLevel}`}
+                subtext={`${Math.floor(gameState.prestigeMultiplier)}x earnings multiplier`}
+              />
+            )}
+
+            <StatCard
+              icon={<Users className="w-6 h-6" />}
+              title="Online Users"
+              value={gameState.onlineUsers.toString()}
+              subtext="Players mining $KNYE right now"
+            />
+          </div>
         </TabsContent>
         
-        <TabsContent value="achievements">
+        <TabsContent value="achievements" className="w-full">
           <Achievements gameState={gameState} />
         </TabsContent>
       </Tabs>

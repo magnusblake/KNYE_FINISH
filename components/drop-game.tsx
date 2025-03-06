@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Mic, Disc, Bomb, X, Play, Trophy, Clock, Target, Award } from "lucide-react"
 import type { GameState } from "@/hooks/useGameState"
 import { Progress } from "@/components/ui/progress"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 
 interface DropGameProps {
   gameState: GameState
@@ -31,31 +32,17 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
   const [clickEffects, setClickEffects] = useState<{ id: number; x: number; y: number; type: string; points?: number }[]>([])
   const [spawnRate, setSpawnRate] = useState(600) // Slower spawn rate
   const [level, setLevel] = useState(1)
-  const [gameAnimationCompleted, setGameAnimationCompleted] = useState(false)
   const [multiplier, setMultiplier] = useState(1)
-
-  const canPlay = useCallback(() => {
-    return Date.now() - gameState.lastDropGameTimestamp >= 2 * 60 * 60 * 1000
-  }, [gameState.lastDropGameTimestamp])
-
-  // Visual elements for special events
   const [showMultiplierEffect, setShowMultiplierEffect] = useState(false)
   const [showLevelUpEffect, setShowLevelUpEffect] = useState(false)
-
-  // Achievements for the drop game
   const [achievements, setAchievements] = useState({
     score5000: false,
     level3: false
   })
 
-  useEffect(() => {
-    // Mark animation as completed after a short delay to prevent flashing
-    if (gameStatus === 'initial') {
-      setTimeout(() => {
-        setGameAnimationCompleted(true);
-      }, 300);
-    }
-  }, [gameStatus]);
+  const canPlay = useCallback(() => {
+    return Date.now() - gameState.lastDropGameTimestamp >= 2 * 60 * 60 * 1000
+  }, [gameState.lastDropGameTimestamp])
 
   useEffect(() => {
     if (gameStatus === "playing") {
@@ -212,23 +199,137 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
   // Reduced reward ratio: now 8 $KNYE per point instead of 10
   const earnedCoins = Math.floor(score * 8)
 
-  const GameCard = React.memo(({ children }: { children: React.ReactNode }) => (
-    <motion.div
-      className="fixed inset-0 bg-background/80 backdrop-blur-md z-50 flex items-center justify-center"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <motion.div
-        className="bg-secondary p-8 rounded-lg text-center max-w-md w-full"
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.2 }}
-      >
-        {children}
-      </motion.div>
-    </motion.div>
-  ))
+  // Start Game Modal (Completely rebuilt)
+  const StartGameModal = () => (
+    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-md flex items-center justify-center p-4">
+      <Card className="max-w-md w-full bg-secondary border-none">
+        <CardHeader className="text-center pb-2">
+          <Play className="w-12 h-12 text-primary mx-auto mb-2" />
+          <CardTitle className="text-2xl text-primary">Drop Game</CardTitle>
+          <CardDescription>
+            Catch microphones and discs to earn $KNYE. Avoid bombs!
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-4 pb-6">
+          <div className="bg-accent rounded-lg p-4 mb-6">
+            <div className="text-sm font-medium text-foreground mb-2">How to play:</div>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li className="flex items-start gap-2">
+                <Mic className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                <span>Tap microphones for 5 points</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Disc className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                <span>Tap discs for 15 points</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Bomb className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
+                <span>Avoid bombs or lose points</span>
+              </li>
+            </ul>
+          </div>
+          <Button 
+            onClick={handleStart} 
+            className="w-full text-lg py-6 bg-primary text-primary-foreground hover:bg-primary/90" 
+            disabled={!canPlay()}
+          >
+            {canPlay() ? "Start Game" : "Cooldown Active"}
+          </Button>
+          {!canPlay() && (
+            <div className="mt-4 text-center text-sm text-muted-foreground">
+              <Clock className="w-4 h-4 inline-block mr-1 mb-0.5" />
+              Next game available in:{" "}
+              {formatTimeLeft(gameState.lastDropGameTimestamp + 2 * 60 * 60 * 1000 - Date.now())}
+            </div>
+          )}
+        </CardContent>
+        <CardFooter className="pt-0 justify-end">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-4 w-4 mr-1" />
+            Close
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  )
+
+  // Game Over Modal (Completely rebuilt)
+  const GameOverModal = () => (
+    <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-md flex items-center justify-center p-4">
+      <Card className="max-w-md w-full bg-secondary border-none">
+        <CardHeader className="text-center">
+          <Trophy className="w-12 h-12 text-primary mx-auto mb-2" />
+          <CardTitle className="text-2xl text-primary">Game Results</CardTitle>
+          <CardDescription>
+            Good job! You've completed the drop game.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-2">
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <div className="bg-accent p-4 rounded-lg text-center">
+              <p className="text-sm text-muted-foreground mb-1">Score</p>
+              <p className="text-2xl font-bold text-primary">{score}</p>
+            </div>
+            <div className="bg-accent p-4 rounded-lg text-center">
+              <p className="text-sm text-muted-foreground mb-1">Level</p>
+              <p className="text-2xl font-bold text-primary">{level}</p>
+            </div>
+            <div className="bg-accent p-4 rounded-lg text-center col-span-2">
+              <p className="text-sm text-muted-foreground mb-1">Reward</p>
+              <p className="text-2xl font-bold text-primary">{earnedCoins} $KNYE</p>
+            </div>
+          </div>
+          
+          {(achievements.score5000 || achievements.level3) && (
+            <div className="bg-accent p-4 rounded-lg mb-6">
+              <div className="flex items-center mb-2">
+                <Award className="w-5 h-5 text-primary mr-2" />
+                <span className="font-medium text-foreground">Achievements Unlocked!</span>
+              </div>
+              <div className="space-y-2 text-sm">
+                {achievements.score5000 && (
+                  <div className="flex items-center text-muted-foreground">
+                    <CheckCircle className="w-4 h-4 mr-2 text-primary" />
+                    High Roller (5,000+ score)
+                  </div>
+                )}
+                {achievements.level3 && (
+                  <div className="flex items-center text-muted-foreground">
+                    <CheckCircle className="w-4 h-4 mr-2 text-primary" />
+                    Level Master (Reached level 3)
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </CardContent>
+        <CardFooter className="flex justify-between border-t border-border pt-4">
+          <Button 
+            onClick={handleStart} 
+            variant="outline"
+            disabled={!canPlay()}
+            className="flex-1 mr-2"
+          >
+            Play Again
+          </Button>
+          <Button
+            onClick={() => {
+              gameState.addCoins(earnedCoins)
+              onClose()
+            }}
+            className="flex-1 ml-2 bg-primary hover:bg-primary/90 text-primary-foreground"
+          >
+            Claim Reward
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  )
 
   return (
     <div className="fixed inset-0 z-50">
@@ -239,79 +340,8 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
       </div>
 
       <AnimatePresence mode="wait">
-        {gameStatus !== "playing" && gameAnimationCompleted && (
-          <GameCard>
-            {gameStatus === "initial" ? (
-              <>
-                <Play className="w-16 h-16 text-primary mx-auto mb-4" />
-                <h2 className="text-3xl font-bold text-primary mb-4">Drop Game</h2>
-                <p className="text-muted-foreground mb-6">
-                  Catch microphones and discs to earn $KNYE. Avoid the bombs or lose points!
-                </p>
-                <Button 
-                  onClick={handleStart} 
-                  className="w-full text-lg px-8 py-4 bg-primary text-primary-foreground hover:bg-primary/90" 
-                  disabled={!canPlay()}
-                >
-                  {canPlay() ? "Start Game" : "Cooldown Active"}
-                </Button>
-                {!canPlay() && (
-                  <p className="text-muted-foreground mt-4">
-                    Next game available in:{" "}
-                    {formatTimeLeft(gameState.lastDropGameTimestamp + 2 * 60 * 60 * 1000 - Date.now())}
-                  </p>
-                )}
-              </>
-            ) : (
-              <>
-                <Trophy className="w-16 h-16 text-primary mx-auto mb-4" />
-                <h2 className="text-3xl font-bold text-primary mb-4">Game Over!</h2>
-                
-                <div className="bg-accent p-4 rounded-lg mb-4">
-                  <p className="text-lg text-foreground mb-2">Score: <span className="text-primary font-bold">{score}</span></p>
-                  <p className="text-lg text-foreground mb-2">Level: <span className="text-primary font-bold">{level}</span></p>
-                  <p className="text-xl text-foreground">You earned: <span className="text-primary font-bold">{earnedCoins} $KNYE</span></p>
-                </div>
-                
-                {(achievements.score5000 || achievements.level3) && (
-                  <div className="mt-4 mb-6">
-                    <h3 className="text-primary font-bold mb-2 flex items-center justify-center">
-                      <Award className="w-5 h-5 mr-2" />
-                      Achievements Unlocked!
-                    </h3>
-                    <div className="flex flex-col gap-2">
-                      {achievements.score5000 && (
-                        <div className="text-sm text-foreground">High Roller (5,000+ score)</div>
-                      )}
-                      {achievements.level3 && (
-                        <div className="text-sm text-foreground">Level Up (Reached level 3)</div>
-                      )}
-                    </div>
-                  </div>
-                )}
-                
-                <div className="flex justify-center gap-4">
-                  <Button 
-                    onClick={handleStart} 
-                    className="text-lg px-6 py-3 bg-secondary hover:bg-secondary/90 text-secondary-foreground" 
-                    disabled={!canPlay()}
-                  >
-                    Play Again
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      gameState.addCoins(earnedCoins)
-                      onClose()
-                    }}
-                    className="text-lg px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground"
-                  >
-                    Claim Reward
-                  </Button>
-                </div>
-              </>
-            )}
-          </GameCard>
-        )}
+        {gameStatus === "initial" && <StartGameModal />}
+        {gameStatus === "gameOver" && <GameOverModal />}
       </AnimatePresence>
 
       {gameStatus === "playing" && (

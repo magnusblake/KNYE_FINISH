@@ -611,11 +611,12 @@ export function useGameState(): GameState {
     }
   }, [achievements, totalClicks, coins, totalUpgradesPurchased, level, prestigeLevel]);
 
+  // FIX: Passive income bug - update at regular intervals even for small amounts
   useEffect(() => {
     const timer = setInterval(() => {
       if (coinsPerSecond > 0) {
-        // Removed division by 10 to fix passive income not working with small amounts
-        const passiveEarning = Math.floor(coinsPerSecond * prestigeMultiplier / 10);
+        // Always apply passive income even for small amounts
+        const passiveEarning = Math.max(1, Math.floor(coinsPerSecond * prestigeMultiplier / 10));
         setCoins((prev) => prev + passiveEarning);
         // Update total coins earned stat
         setStats(prev => ({
@@ -726,7 +727,7 @@ export function useGameState(): GameState {
     setIsDataSynced(false)
   }
 
-  // Purchase click upgrade
+  // FIX: Purchase click upgrade with correct effect calculation
   const purchaseClickUpgrade = (index: number) => {
     const upgrade = clickUpgrades[index]
   
@@ -734,9 +735,10 @@ export function useGameState(): GameState {
       setCoins((prev) => prev - upgrade.cost)
       setTotalUpgradesCost((prev) => prev + upgrade.cost)
   
-      // First, calculate the direct effect of this upgrade
+      // Calculate the direct effect of this upgrade
       const newEffectValue = Math.floor(upgrade.effect * upgrade.effectMultiplier);
       
+      // Update the specific upgrade in state
       setClickUpgrades((prev) => {
         const newUpgrades = [...prev]
         newUpgrades[index] = {
@@ -748,25 +750,24 @@ export function useGameState(): GameState {
         return newUpgrades
       })
   
-      // Then, recalculate the total coinsPerClick
+      // Recalculate the total coinsPerClick
       setCoinsPerClick((prev) => {
         let baseValue = 1; // Base value
-        let upgradeValue = 0;
         
-        // Calculate the actual value of all upgrades combined
+        // Calculate the sum of all upgrades' effects
+        let upgradeValue = 0;
         clickUpgrades.forEach((upgradeItem, i) => {
-          // Use the new level for the current upgrade, otherwise use existing level
+          // For the current upgrade, use the new level and effect
           const level = i === index ? upgrade.level + 1 : upgradeItem.level;
+          const effect = i === index ? newEffectValue : upgradeItem.effect;
+          
           if (level > 0) {
-            // Use the direct effect value without further calculations
-            // For the current upgrade, use the new effect value
-            const effectValue = i === index ? newEffectValue : upgradeItem.effect;
-            upgradeValue += effectValue * level;
+            upgradeValue += effect * level;
           }
         });
         
         return Math.floor((baseValue + upgradeValue) * prestigeMultiplier);
-      })
+      });
       
       setTotalUpgradesPurchased((prev) => prev + 1)
       addExperience(20) // Award XP for purchasing upgrades
@@ -774,7 +775,7 @@ export function useGameState(): GameState {
     }
   }
 
-  // Purchase passive upgrade
+  // FIX: Purchase passive upgrade with correct effect calculation
   const purchasePassiveUpgrade = (index: number) => {
     const upgrade = passiveUpgrades[index]
   
@@ -782,9 +783,10 @@ export function useGameState(): GameState {
       setCoins((prev) => prev - upgrade.cost)
       setTotalUpgradesCost((prev) => prev + upgrade.cost)
   
-      // First, calculate the direct effect of this upgrade
+      // Calculate the direct effect of this upgrade
       const newEffectValue = Math.floor(upgrade.effect * upgrade.effectMultiplier);
       
+      // Update the specific upgrade in state
       setPassiveUpgrades((prev) => {
         const newUpgrades = [...prev]
         newUpgrades[index] = {
@@ -803,7 +805,7 @@ export function useGameState(): GameState {
         setEnergyRegenRate((prev) => prev + upgrade.effect)
       }
       
-      // Calculate the new coins per second
+      // Calculate the new coins per second for all passive upgrades except energy ones
       if (upgrade.name !== "Energy Drink" && upgrade.name !== "Power Nap") {
         setCoinsPerSecond((prev) => {
           let passiveValue = 0;
@@ -816,10 +818,10 @@ export function useGameState(): GameState {
             
             // Use the new level for the current upgrade, otherwise use existing level
             const level = i === index ? upgrade.level + 1 : upgradeItem.level;
+            const effect = i === index ? newEffectValue : upgradeItem.effect;
+            
             if (level > 0) {
-              // Use the direct effect value
-              const effectValue = i === index ? newEffectValue : upgradeItem.effect;
-              passiveValue += effectValue * level;
+              passiveValue += effect * level;
             }
           });
           

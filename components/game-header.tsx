@@ -77,7 +77,7 @@ export function GameHeader({ gameState }: GameHeaderProps) {
               
               <div className="flex items-center text-sm text-muted-foreground">
                 <Disc3 className="w-4 h-4 mr-1" />
-                <span>{gameState.coinsPerSecond.toFixed(1)}/sec</span>
+                <span>{gameState.coinsPerSecond.toFixed(1)}/s</span>
               </div>
               
               <Link

@@ -94,7 +94,7 @@ export function StatsView({ gameState }: StatsViewProps) {
             <StatCard
               icon={<Disc3 className="w-6 h-6" />}
               title="Passive Income"
-              value={`${gameState.coinsPerSecond.toFixed(1)} $KNYE/sec`}
+              value={`${gameState.coinsPerSecond.toFixed(1)} $KNYE/s`}
               subtext={`${passivePercentage.toFixed(0)}% of your income is passive`}
             />
 

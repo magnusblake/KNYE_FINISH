@@ -164,7 +164,7 @@ export function WalletView({ gameState }: WalletViewProps) {
   }, [gameState.walletAddress])
 
   // Calculate USD value
-  const usdValue = (gameState.coins * KNYE_TO_USD_RATE).toFixed(2);
+  const usdValue = Math.floor(gameState.coins * KNYE_TO_USD_RATE).toString();
 
   return (
     <div className="py-4">
@@ -295,7 +295,7 @@ export function WalletView({ gameState }: WalletViewProps) {
                 <div className="bg-accent p-3 rounded-lg mb-4">
                   <div className="text-sm text-muted-foreground mb-1">Available balance:</div>
                   <div className="flex items-center text-2xl font-bold text-primary">
-                    {gameState.coins.toLocaleString()} $KNYE
+                    {Math.floor(gameState.coins).toLocaleString()} $KNYE
                     <Badge variant="outline" className="ml-2 bg-background text-muted-foreground text-xs">
                       <DollarSign className="w-3 h-3 mr-0.5" />
                       {usdValue}
@@ -386,7 +386,7 @@ export function WalletView({ gameState }: WalletViewProps) {
                       >
                         0.1 TON
                       </Button>
-                      <span className="text-xs text-muted-foreground mt-1">≈ ${(5000 * KNYE_TO_USD_RATE).toFixed(2)}</span>
+                      <span className="text-xs text-muted-foreground mt-1">≈ ${Math.floor(5000 * KNYE_TO_USD_RATE)}</span>
                     </div>
                   </div>
                   
@@ -405,7 +405,7 @@ export function WalletView({ gameState }: WalletViewProps) {
                       >
                         0.5 TON
                       </Button>
-                      <span className="text-xs text-muted-foreground mt-1">≈ ${(25000 * KNYE_TO_USD_RATE).toFixed(2)}</span>
+                      <span className="text-xs text-muted-foreground mt-1">≈ ${Math.floor(25000 * KNYE_TO_USD_RATE)}</span>
                     </div>
                   </div>
                   
@@ -424,7 +424,7 @@ export function WalletView({ gameState }: WalletViewProps) {
                       >
                         1.5 TON
                       </Button>
-                      <span className="text-xs text-muted-foreground mt-1">≈ ${(100000 * KNYE_TO_USD_RATE).toFixed(2)}</span>
+                      <span className="text-xs text-muted-foreground mt-1">≈ ${Math.floor(100000 * KNYE_TO_USD_RATE)}</span>
                     </div>
                   </div>
                 </div>

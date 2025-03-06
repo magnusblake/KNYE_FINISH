@@ -41,7 +41,7 @@ export function ClickerView({ gameState }: ClickerViewProps) {
           const newStreak = prev + 1;
           // Every 5 consecutive clicks increases the multiplier
           if (newStreak % 5 === 0 && newStreak <= 25) {
-            setComboMultiplier(1 + (newStreak / 25));
+            setComboMultiplier(Math.floor(1 + (newStreak / 25)));
             setShowComboText(true);
             setTimeout(() => setShowComboText(false), 1000);
           }
@@ -54,8 +54,8 @@ export function ClickerView({ gameState }: ClickerViewProps) {
       
       setLastClickTime(now);
 
-      // Calculate earned coins with combo multiplier
-      const earnedCoins = gameState.coinsPerClick * comboMultiplier;
+      // Calculate earned coins with combo multiplier (integer values)
+      const earnedCoins = Math.floor(gameState.coinsPerClick * comboMultiplier);
       
       // Position the effect relative to click position
       const newEffect = { id: Date.now(), x, y, amount: earnedCoins }
@@ -111,7 +111,7 @@ export function ClickerView({ gameState }: ClickerViewProps) {
           exit={{ opacity: 0, y: -10 }}
           className="absolute top-44 text-primary font-bold text-xl"
         >
-          COMBO x{comboMultiplier.toFixed(1)}!
+          COMBO x{comboMultiplier}!
         </motion.div>
       )}
 
@@ -147,7 +147,7 @@ export function ClickerView({ gameState }: ClickerViewProps) {
               transition={{ duration: 0.8 }}
               className="absolute text-primary font-bold pointer-events-none z-20"
             >
-              +{effect.amount.toFixed(1)}
+              +{effect.amount}
             </motion.div>
           ))}
         </AnimatePresence>

@@ -129,9 +129,9 @@ const loadGameState = (userId: string | null = null) => {
 }
 
 export function useGameState(): GameState {
-  // Initialize state with default values
+  // Initialize state with default values - all as integers
   const [coins, setCoins] = useState(0)
-  const [coinsPerClick, setCoinsPerClick] = useState(0.1)
+  const [coinsPerClick, setCoinsPerClick] = useState(1) // Changed from 0.1 to 1
   const [coinsPerSecond, setCoinsPerSecond] = useState(0)
   const [walletAddress, setWalletAddress] = useState<string | null>(null)
 
@@ -146,7 +146,7 @@ export function useGameState(): GameState {
   const [onlineUsers, setOnlineUsers] = useState(0)
   const [lastDropGameTimestamp, setLastDropGameTimestamp] = useState(0)
 
-  // Add new state variables for progression
+  // Add new state variables for progression - all integers
   const [energy, setEnergy] = useState(100)
   const [maxEnergy, setMaxEnergy] = useState(100)
   const [energyRegenRate, setEnergyRegenRate] = useState(1)
@@ -235,12 +235,12 @@ export function useGameState(): GameState {
     },
   ])
 
-  // Initialize upgrades with improved descriptions and progression
+  // Initialize upgrades with integer effects
   const [clickUpgrades, setClickUpgrades] = useState<Upgrade[]>([
     {
       name: "Microphone",
       cost: 50,
-      effect: 0.1,
+      effect: 1, // Changed from 0.1 to 1
       level: 0,
       maxLevel: 20,
       costMultiplier: 1.5,
@@ -251,7 +251,7 @@ export function useGameState(): GameState {
     {
       name: "Gold Chain",
       cost: 500,
-      effect: 0.5,
+      effect: 5, // Changed from 0.5 to 5
       level: 0,
       maxLevel: 15,
       costMultiplier: 1.8,
@@ -262,7 +262,7 @@ export function useGameState(): GameState {
     {
       name: "Designer Shoes",
       cost: 5000,
-      effect: 2,
+      effect: 20, // Changed from 2 to 20
       level: 0,
       maxLevel: 10,
       costMultiplier: 2.2,
@@ -273,7 +273,7 @@ export function useGameState(): GameState {
     {
       name: "Studio Time",
       cost: 25000,
-      effect: 8,
+      effect: 80, // Changed from 8 to 80
       level: 0,
       maxLevel: 8,
       costMultiplier: 2.5,
@@ -284,7 +284,7 @@ export function useGameState(): GameState {
     {
       name: "Platinum Status",
       cost: 100000,
-      effect: 25,
+      effect: 250, // Changed from 25 to 250
       level: 0,
       maxLevel: 5,
       costMultiplier: 3.0,
@@ -298,7 +298,7 @@ export function useGameState(): GameState {
     {
       name: "Fan Base",
       cost: 100,
-      effect: 0.05,
+      effect: 1, // Changed from 0.05 to 1
       level: 0,
       maxLevel: 20,
       costMultiplier: 1.6,
@@ -309,7 +309,7 @@ export function useGameState(): GameState {
     {
       name: "Record Deal",
       cost: 1000,
-      effect: 0.2,
+      effect: 5, // Changed from 0.2 to 5
       level: 0,
       maxLevel: 15,
       costMultiplier: 1.9,
@@ -320,7 +320,7 @@ export function useGameState(): GameState {
     {
       name: "Fashion Line",
       cost: 10000,
-      effect: 1,
+      effect: 20, // Changed from 1 to 20
       level: 0,
       maxLevel: 10,
       costMultiplier: 2.3,
@@ -342,7 +342,7 @@ export function useGameState(): GameState {
     {
       name: "Power Nap",
       cost: 2000,
-      effect: 0.2,
+      effect: 1, // Changed from 0.2 to 1
       level: 0,
       maxLevel: 5,
       costMultiplier: 2,
@@ -353,7 +353,7 @@ export function useGameState(): GameState {
     {
       name: "Music Festival",
       cost: 50000,
-      effect: 5,
+      effect: 50, // Changed from 5 to 50
       level: 0,
       maxLevel: 8,
       costMultiplier: 2.5,
@@ -364,7 +364,7 @@ export function useGameState(): GameState {
     {
       name: "World Tour",
       cost: 200000,
-      effect: 20,
+      effect: 200, // Changed from 20 to 200
       level: 0,
       maxLevel: 5,
       costMultiplier: 3.0,
@@ -378,9 +378,9 @@ export function useGameState(): GameState {
   useEffect(() => {
     const savedState = loadGameState(userId)
     if (savedState) {
-      setCoins(savedState.coins || 0)
-      setCoinsPerClick(savedState.coinsPerClick || 0.1)
-      setCoinsPerSecond(savedState.coinsPerSecond || 0)
+      setCoins(Math.floor(savedState.coins || 0))
+      setCoinsPerClick(Math.floor(savedState.coinsPerClick || 1))
+      setCoinsPerSecond(Math.floor(savedState.coinsPerSecond || 0))
       setClickUpgrades(prev => {
         // Merge saved state with new upgrades to ensure new content is available
         const savedUpgrades = savedState.clickUpgrades || [];
@@ -389,8 +389,8 @@ export function useGameState(): GameState {
             return {
               ...upgrade,
               level: savedUpgrades[index].level || 0,
-              cost: savedUpgrades[index].cost || upgrade.cost,
-              effect: savedUpgrades[index].effect || upgrade.effect,
+              cost: Math.floor(savedUpgrades[index].cost || upgrade.cost),
+              effect: Math.floor(savedUpgrades[index].effect || upgrade.effect),
               unlocked: savedUpgrades[index].unlocked !== undefined ? savedUpgrades[index].unlocked : upgrade.unlocked
             };
           }
@@ -405,8 +405,8 @@ export function useGameState(): GameState {
             return {
               ...upgrade,
               level: savedUpgrades[index].level || 0,
-              cost: savedUpgrades[index].cost || upgrade.cost,
-              effect: savedUpgrades[index].effect || upgrade.effect,
+              cost: Math.floor(savedUpgrades[index].cost || upgrade.cost),
+              effect: Math.floor(savedUpgrades[index].effect || upgrade.effect),
               unlocked: savedUpgrades[index].unlocked !== undefined ? savedUpgrades[index].unlocked : upgrade.unlocked
             };
           }
@@ -422,9 +422,9 @@ export function useGameState(): GameState {
       setTotalPlayTime(savedState.totalPlayTime || 0)
       setFirstPlayTimestamp(savedState.firstPlayTimestamp || Date.now())
       setLastDropGameTimestamp(savedState.lastDropGameTimestamp || 0)
-      setEnergy(savedState.energy !== undefined ? savedState.energy : 100)
-      setMaxEnergy(savedState.maxEnergy !== undefined ? savedState.maxEnergy : 100)
-      setEnergyRegenRate(savedState.energyRegenRate !== undefined ? savedState.energyRegenRate : 1)
+      setEnergy(Math.floor(savedState.energy !== undefined ? savedState.energy : 100))
+      setMaxEnergy(Math.floor(savedState.maxEnergy !== undefined ? savedState.maxEnergy : 100))
+      setEnergyRegenRate(Math.floor(savedState.energyRegenRate !== undefined ? savedState.energyRegenRate : 1))
       setExperience(savedState.experience || 0)
       setLevel(savedState.level || 1)
       setPrestigeLevel(savedState.prestigeLevel || 0)
@@ -474,9 +474,9 @@ export function useGameState(): GameState {
     if (coins === 0 && totalClicks === 0 && !userId) return
     
     const state = {
-      coins,
-      coinsPerClick,
-      coinsPerSecond,
+      coins: Math.floor(coins),
+      coinsPerClick: Math.floor(coinsPerClick),
+      coinsPerSecond: Math.floor(coinsPerSecond),
       clickUpgrades,
       passiveUpgrades,
       walletAddress,
@@ -488,14 +488,14 @@ export function useGameState(): GameState {
       totalPlayTime,
       firstPlayTimestamp,
       lastDropGameTimestamp,
-      energy,
-      maxEnergy,
-      energyRegenRate,
+      energy: Math.floor(energy),
+      maxEnergy: Math.floor(maxEnergy),
+      energyRegenRate: Math.floor(energyRegenRate),
       experience,
       level,
       achievements,
       prestigeLevel,
-      prestigeMultiplier,
+      prestigeMultiplier: Math.floor(prestigeMultiplier),
       unlockedFeatures,
       stats,
       userId,
@@ -539,9 +539,9 @@ export function useGameState(): GameState {
     const syncInterval = setInterval(() => {
       if (!isDataSynced) {
         const state = {
-          coins,
-          coinsPerClick,
-          coinsPerSecond,
+          coins: Math.floor(coins),
+          coinsPerClick: Math.floor(coinsPerClick),
+          coinsPerSecond: Math.floor(coinsPerSecond),
           clickUpgrades,
           passiveUpgrades,
           walletAddress,
@@ -553,14 +553,14 @@ export function useGameState(): GameState {
           totalPlayTime,
           firstPlayTimestamp,
           lastDropGameTimestamp,
-          energy,
-          maxEnergy,
-          energyRegenRate,
+          energy: Math.floor(energy),
+          maxEnergy: Math.floor(maxEnergy),
+          energyRegenRate: Math.floor(energyRegenRate),
           experience,
           level,
           achievements,
           prestigeLevel,
-          prestigeMultiplier,
+          prestigeMultiplier: Math.floor(prestigeMultiplier),
           unlockedFeatures,
           stats,
           userId,
@@ -615,7 +615,8 @@ export function useGameState(): GameState {
   useEffect(() => {
     const timer = setInterval(() => {
       if (coinsPerSecond > 0) {
-        const passiveEarning = coinsPerSecond / 10 * prestigeMultiplier;
+        // Ensure passive income is calculated as integer
+        const passiveEarning = Math.floor(coinsPerSecond / 10 * prestigeMultiplier);
         setCoins((prev) => prev + passiveEarning);
         // Update total coins earned stat
         setStats(prev => ({
@@ -632,7 +633,7 @@ export function useGameState(): GameState {
   // Energy regeneration
   useEffect(() => {
     const energyTimer = setInterval(() => {
-      setEnergy((prev) => Math.min(prev + energyRegenRate, maxEnergy))
+      setEnergy((prev) => Math.min(Math.floor(prev + energyRegenRate), maxEnergy))
       setIsDataSynced(false)
     }, 1000)
 
@@ -710,7 +711,7 @@ export function useGameState(): GameState {
 
   // Add coins function
   const addCoins = (amount: number) => {
-    const finalAmount = amount * prestigeMultiplier;
+    const finalAmount = Math.floor(amount * prestigeMultiplier);
     setCoins((prev) => prev + finalAmount);
     // Update total coins earned stat
     setStats(prev => ({
@@ -722,7 +723,7 @@ export function useGameState(): GameState {
 
   // Remove coins function
   const removeCoins = (amount: number) => {
-    setCoins((prev) => Math.max(0, prev - amount))
+    setCoins((prev) => Math.max(0, prev - Math.floor(amount)))
     setIsDataSynced(false)
   }
 
@@ -740,20 +741,20 @@ export function useGameState(): GameState {
           ...upgrade,
           level: upgrade.level + 1,
           cost: Math.floor(upgrade.cost * Math.pow(upgrade.costMultiplier, 1.5)),
-          effect: upgrade.effect * upgrade.effectMultiplier,
+          effect: Math.floor(upgrade.effect * upgrade.effectMultiplier),
         }
         return newUpgrades
       })
 
       setCoinsPerClick((prev) => {
-        let newCoinsPerClick = 0.1 // Base value
+        let newCoinsPerClick = 1 // Base value (was 0.1)
         clickUpgrades.forEach((upgradeItem, i) => {
           const level = i === index ? upgrade.level + 1 : upgradeItem.level
           if (level > 0) {
-            newCoinsPerClick += upgradeItem.effect * Math.pow(upgradeItem.effectMultiplier, level - 1) * level
+            newCoinsPerClick += Math.floor(upgradeItem.effect * Math.pow(upgradeItem.effectMultiplier, level - 1) * level)
           }
         })
-        return newCoinsPerClick * prestigeMultiplier
+        return Math.floor(newCoinsPerClick * prestigeMultiplier)
       })
       
       setTotalUpgradesPurchased((prev) => prev + 1)
@@ -776,7 +777,7 @@ export function useGameState(): GameState {
           ...upgrade,
           level: upgrade.level + 1,
           cost: Math.floor(upgrade.cost * Math.pow(upgrade.costMultiplier, 1.5)),
-          effect: upgrade.effect * upgrade.effectMultiplier,
+          effect: Math.floor(upgrade.effect * upgrade.effectMultiplier),
         }
         return newUpgrades
       })
@@ -786,16 +787,16 @@ export function useGameState(): GameState {
         passiveUpgrades.forEach((upgradeItem, i) => {
           const level = i === index ? upgrade.level + 1 : upgradeItem.level
           if (level > 0 && i !== 3 && i !== 4) { // Skip energy upgrades for income calculation
-            newCoinsPerSecond += upgradeItem.effect * Math.pow(upgradeItem.effectMultiplier, level - 1) * level
+            newCoinsPerSecond += Math.floor(upgradeItem.effect * Math.pow(upgradeItem.effectMultiplier, level - 1) * level)
           }
         })
-        return newCoinsPerSecond * prestigeMultiplier
+        return Math.floor(newCoinsPerSecond * prestigeMultiplier)
       })
 
       if (upgrade.name === "Energy Drink") {
-        setMaxEnergy((prev) => prev + upgrade.effect)
+        setMaxEnergy((prev) => Math.floor(prev + upgrade.effect))
       } else if (upgrade.name === "Power Nap") {
-        setEnergyRegenRate((prev) => prev + upgrade.effect)
+        setEnergyRegenRate((prev) => Math.floor(prev + upgrade.effect))
       }
 
       setTotalUpgradesPurchased((prev) => prev + 1)
@@ -827,7 +828,7 @@ export function useGameState(): GameState {
   // Energy usage function
   const useEnergy = (amount: number) => {
     if (energy >= amount) {
-      setEnergy((prev) => prev - amount);
+      setEnergy((prev) => Math.floor(prev - amount));
       setIsDataSynced(false)
       return true
     }
@@ -836,7 +837,7 @@ export function useGameState(): GameState {
 
   // Add experience function
   const addExperience = (amount: number) => {
-    setExperience(prev => prev + amount)
+    setExperience(prev => Math.floor(prev + amount))
     setIsDataSynced(false)
   }
 
@@ -871,26 +872,26 @@ export function useGameState(): GameState {
   const prestige = () => {
     if (coins >= 1000000) { // Require 1M coins to prestige
       const newPrestigeLevel = prestigeLevel + 1;
-      const newMultiplier = 1 + (newPrestigeLevel * 0.25); // Each prestige level gives +25% bonus
+      const newMultiplier = Math.floor(1 + (newPrestigeLevel * 0.25)); // Each prestige level gives +25% bonus
       
       // Reset progress
       setCoins(0);
-      setCoinsPerClick(0.1 * newMultiplier);
+      setCoinsPerClick(Math.floor(1 * newMultiplier)); // Base is now 1 instead of 0.1
       setCoinsPerSecond(0);
       
       // Reset upgrades but keep unlocks
       setClickUpgrades(prev => prev.map(upgrade => ({
         ...upgrade,
         level: 0,
-        cost: upgrade.cost / Math.pow(upgrade.costMultiplier, upgrade.level * 1.5),
-        effect: upgrade.effect / Math.pow(upgrade.effectMultiplier, upgrade.level),
+        cost: Math.floor(upgrade.cost / Math.pow(upgrade.costMultiplier, upgrade.level * 1.5)),
+        effect: Math.floor(upgrade.effect / Math.pow(upgrade.effectMultiplier, upgrade.level)),
       })));
       
       setPassiveUpgrades(prev => prev.map(upgrade => ({
         ...upgrade,
         level: 0,
-        cost: upgrade.cost / Math.pow(upgrade.costMultiplier, upgrade.level * 1.5),
-        effect: upgrade.effect / Math.pow(upgrade.effectMultiplier, upgrade.level),
+        cost: Math.floor(upgrade.cost / Math.pow(upgrade.costMultiplier, upgrade.level * 1.5)),
+        effect: Math.floor(upgrade.effect / Math.pow(upgrade.effectMultiplier, upgrade.level)),
       })));
       
       // Restore some energy stats
@@ -928,9 +929,9 @@ export function useGameState(): GameState {
     setStats(prev => {
       const newStats = {...prev};
       if (stat === 'highestCombo' && value > prev.highestCombo) {
-        newStats.highestCombo = value;
+        newStats.highestCombo = Math.floor(value);
       } else if (stat === 'totalClicksAllTime') {
-        newStats.totalClicksAllTime = prev.totalClicksAllTime + value;
+        newStats.totalClicksAllTime = prev.totalClicksAllTime + Math.floor(value);
       }
       return newStats;
     });

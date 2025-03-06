@@ -158,10 +158,10 @@ export function UpgradesView({ gameState }: UpgradesViewProps) {
     id: `click-${index}`,
     title: upgrade.name,
     description: upgrade.description || `Increase your clicking power.`,
-    cost: upgrade.cost,
+    cost: Math.floor(upgrade.cost),
     level: upgrade.level,
     maxLevel: upgrade.maxLevel,
-    effect: `+${upgrade.effect.toFixed(1)} coins per click`,
+    effect: `+${Math.floor(upgrade.effect)} coins per click`, // Integer value
     onPurchase: () => gameState.purchaseClickUpgrade(index),
     canAfford: gameState.coins >= upgrade.cost,
     locked: !upgrade.unlocked,
@@ -194,15 +194,15 @@ export function UpgradesView({ gameState }: UpgradesViewProps) {
         : upgrade.name === "Power Nap"
           ? "Increase your energy regeneration rate."
           : "Earn coins automatically."),
-    cost: upgrade.cost,
+    cost: Math.floor(upgrade.cost),
     level: upgrade.level,
     maxLevel: upgrade.maxLevel,
     effect:
       upgrade.name === "Energy Drink"
-        ? `+${upgrade.effect.toFixed(1)} max energy`
+        ? `+${Math.floor(upgrade.effect)} max energy` // Integer values
         : upgrade.name === "Power Nap"
-          ? `+${upgrade.effect.toFixed(1)} energy/sec`
-          : `+${upgrade.effect.toFixed(1)} coins per second`,
+          ? `+${Math.floor(upgrade.effect)} energy/sec` // Integer values
+          : `+${Math.floor(upgrade.effect)} coins per second`, // Integer values
     onPurchase: () => gameState.purchasePassiveUpgrade(index),
     canAfford: gameState.coins >= upgrade.cost,
     locked: !upgrade.unlocked,
@@ -256,10 +256,10 @@ export function UpgradesView({ gameState }: UpgradesViewProps) {
               <Sparkles className="w-5 h-5 text-primary" />
               <div>
                 <p className="text-foreground font-medium">Prestige Multiplier</p>
-                <p className="text-muted-foreground text-sm">All earnings boosted by {(gameState.prestigeMultiplier).toFixed(2)}x</p>
+                <p className="text-muted-foreground text-sm">All earnings boosted by {Math.floor(gameState.prestigeMultiplier)}x</p>
               </div>
             </div>
-            <div className="text-2xl font-bold text-primary">{(gameState.prestigeMultiplier).toFixed(2)}x</div>
+            <div className="text-2xl font-bold text-primary">{Math.floor(gameState.prestigeMultiplier)}x</div>
           </CardContent>
         </Card>
       )}
@@ -316,7 +316,7 @@ export function UpgradesView({ gameState }: UpgradesViewProps) {
                 <h4 className="font-medium text-foreground mb-2">What will happen:</h4>
                 <ul className="space-y-2 text-muted-foreground text-sm">
                   <li>• All coins and upgrades will be reset</li>
-                  <li>• Your multiplier will increase to {(1 + ((gameState.prestigeLevel + 1) * 0.25)).toFixed(2)}x</li>
+                  <li>• Your multiplier will increase to {Math.floor(1 + ((gameState.prestigeLevel + 1) * 0.25))}x</li>
                   <li>• Unlocked features will remain available</li>
                   <li>• You'll earn 1000 XP</li>
                 </ul>

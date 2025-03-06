@@ -25,9 +25,9 @@ export function GameHeader({ gameState }: GameHeaderProps) {
   // Format large numbers with K, M abbreviations
   const formatLargeNumber = (num: number): string => {
     if (num >= 1000000) {
-      return (num / 1000000).toFixed(1) + 'M';
+      return Math.floor(num / 1000000) + 'M';
     } else if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'K';
+      return Math.floor(num / 1000) + 'K';
     } else {
       return Math.floor(num).toString();
     }
@@ -65,12 +65,12 @@ export function GameHeader({ gameState }: GameHeaderProps) {
             <div className="flex items-center space-x-3">
               <div className="flex items-center text-sm text-muted-foreground">
                 <ZapIcon className="w-4 h-4 mr-1" />
-                <span>{gameState.coinsPerClick.toFixed(1)}/click</span>
+                <span>{gameState.coinsPerClick}/click</span>
               </div>
               
               <div className="flex items-center text-sm text-muted-foreground">
                 <Disc3 className="w-4 h-4 mr-1" />
-                <span>{gameState.coinsPerSecond.toFixed(1)}/s</span>
+                <span>{gameState.coinsPerSecond}/s</span>
               </div>
             </div>
           </div>

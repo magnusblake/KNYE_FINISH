@@ -171,8 +171,8 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
       }, 500)
 
       if (item.type === "bomb") {
-        // Increased bomb penalty
-        const penalty = Math.min(700, score * 0.2);
+        // Increased bomb penalty - ensure it's an integer
+        const penalty = Math.min(700, Math.floor(score * 0.2));
         setScore(prev => Math.max(0, prev - penalty));
         setCombo(0)
         setMultiplier(1)
@@ -183,7 +183,7 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
           x: item.x,
           y: item.y - 30,
           type: "penalty",
-          points: -Math.round(penalty)
+          points: -Math.floor(penalty)
         }])
       } else {
         const now = Date.now()
@@ -208,7 +208,7 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
             // Increase multiplier every 8 combos (more difficult)
             if (newCombo % 8 === 0 && multiplier < 2) {
               setMultiplier(prev => {
-                const newMultiplier = Math.min(2, prev + 0.25);
+                const newMultiplier = Math.min(2, Math.floor(prev + 0.25));
                 setShowMultiplierEffect(true)
                 setTimeout(() => setShowMultiplierEffect(false), 2000)
                 return newMultiplier;
@@ -220,12 +220,12 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
         } else {
           setCombo(1)
           if (multiplier > 1) {
-            setMultiplier(prev => Math.max(1, prev - 0.25))
+            setMultiplier(prev => Math.max(1, Math.floor(prev - 0.25)))
           }
         }
         setLastCatchTime(now)
-
-        // Reduced point values
+      
+        // Reduced point values - all integers
         let itemPoints = 0;
         if (item.type === "mic") {
           itemPoints = 5; // Reduced from 10
@@ -235,9 +235,9 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
           itemPoints = 50;
         }
         
-        // Reduced combo bonus (less reward for combos)
+        // Reduced combo bonus (less reward for combos) - ensure integer values
         const comboBonus = Math.min(combo, 10) / 4;
-        const totalPoints = Math.round((itemPoints + comboBonus) * multiplier);
+        const totalPoints = Math.floor((itemPoints + comboBonus) * multiplier);
         
         setScore((prev) => prev + totalPoints)
         
@@ -249,34 +249,6 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
           type: "points",
           points: totalPoints
         }])
-        
-        // Check if score achievement reached
-        if (score > 5000 && !achievements.score5000) {
-          setAchievements(prev => ({...prev, score5000: true}))
-          // Bonus for achievement
-          setScore(prev => prev + 1000)
-          setClickEffects(prev => [...prev, {
-            id: Date.now(),
-            x: gameAreaRef.current ? gameAreaRef.current.offsetWidth / 2 : 200,
-            y: gameAreaRef.current ? gameAreaRef.current.offsetHeight / 2 : 200,
-            type: "achievement",
-            points: 1000
-          }])
-        }
-        
-        // Check if level achievement reached
-        if (level >= 3 && !achievements.level3) {
-          setAchievements(prev => ({...prev, level3: true}))
-          // Bonus for achievement
-          setScore(prev => prev + 800)
-          setClickEffects(prev => [...prev, {
-            id: Date.now(),
-            x: gameAreaRef.current ? gameAreaRef.current.offsetWidth / 2 : 200,
-            y: gameAreaRef.current ? gameAreaRef.current.offsetHeight / 2 : 200,
-            type: "achievement",
-            points: 800
-          }])
-        }
       }
       
       setItems((prev) => prev.filter((i) => i.id !== item.id))
@@ -285,7 +257,7 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
   )
 
   // Reduced reward ratio: now 8 $KNYE per point instead of 10
-  const earnedCoins = Math.round(score * 8)
+  const earnedCoins = Math.floor(score * 8)
 
   const GameCard = React.memo(({ children }: { children: React.ReactNode }) => (
     <motion.div
@@ -413,7 +385,7 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
                 <span className="text-sm text-muted-foreground">Level {level}</span>
                 {multiplier > 1 && (
                   <span className="ml-2 px-2 py-0.5 bg-primary text-primary-foreground text-xs rounded-full">
-                    x{multiplier.toFixed(1)}
+                    x{multiplier}
                   </span>
                 )}
               </div>
@@ -435,7 +407,7 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
                 transition={{ duration: 0.5 }}
                 className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center"
               >
-                <span className="text-4xl font-bold text-primary">x{multiplier.toFixed(1)}</span>
+                <span className="text-4xl font-bold text-primary">x{multiplier}</span>
                 <span className="text-xl text-foreground">MULTIPLIER!</span>
               </motion.div>
             )}

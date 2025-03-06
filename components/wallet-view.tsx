@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import type { GameState } from "@/hooks/useGameState"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ArrowRightIcon, WalletIcon, CheckCircle, AlertCircle, CopyIcon, QrCodeIcon, LockIcon, ZapIcon } from "lucide-react"
+import { ArrowRightIcon, WalletIcon, CheckCircle, AlertCircle, CopyIcon, QrCodeIcon, ZapIcon } from "lucide-react"
 import { connectTonWallet, withdrawCoins, getWalletBalance } from "@/lib/wallet"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
@@ -162,32 +162,6 @@ export function WalletView({ gameState }: WalletViewProps) {
     
     return () => clearInterval(interval)
   }, [gameState.walletAddress])
-
-  // Показываем заблокированное представление, если уровень игрока недостаточен
-  if (gameState.level < 3) {
-    return (
-      <div className="py-6 flex flex-col items-center">
-        <LockIcon className="w-16 h-16 text-muted animate-pulse mb-4" />
-        <h2 className="text-2xl font-bold mb-2 text-primary">Кошелек заблокирован</h2>
-        <p className="text-muted-foreground mb-2 text-center max-w-md">
-          Функция кошелька будет разблокирована, когда вы достигнете 3 уровня.
-        </p>
-        <div className="w-full max-w-md mt-4">
-          <div className="flex justify-between text-sm text-muted-foreground mb-1">
-            <span>Прогресс разблокировки:</span>
-            <span>Уровень {gameState.level}/3</span>
-          </div>
-          <Progress value={(gameState.level / 3) * 100} className="h-2" />
-        </div>
-        <Button 
-          onClick={() => window.history.back()} 
-          className="mt-6 bg-primary text-primary-foreground hover:bg-primary/90"
-        >
-          Назад
-        </Button>
-      </div>
-    )
-  }
 
   return (
     <div className="py-6">

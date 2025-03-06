@@ -12,7 +12,6 @@ import { DailyBonus } from "@/components/daily-bonus"
 import { Leaderboard } from "@/components/leaderboard"
 import { StatsView } from "@/components/stats-view"
 import { motion, AnimatePresence } from "framer-motion"
-import { GuessAlbumGame } from "@/components/guess-album-game"
 import { GameHeader } from "@/components/game-header"
 import { TelegramProvider, useTelegram } from "@/hooks/useTelegram"
 import { LoadingScreen } from "@/components/loading-screen"
@@ -101,17 +100,14 @@ function GameContent() {
             transition={{ duration: 0.3 }}
           >
             {activeTab === "clicker" && (
-              <>
-                <DailyBonus gameState={gameState} />
-                <ClickerView gameState={gameState} />
-              </>
+              <ClickerView gameState={gameState} />
             )}
             {activeTab === "upgrades" && <UpgradesView gameState={gameState} />}
             {activeTab === "wallet" && <WalletView gameState={gameState} />}
             {activeTab === "social" && (
               <>
-                <Leaderboard userId={user.id?.toString()} />
-                <GuessAlbumGame gameState={gameState} />
+                <DailyBonus gameState={gameState} />
+                <Leaderboard />
                 <ReferralProgram 
                   gameState={gameState} 
                   telegramUsername={user.username || undefined}
@@ -128,6 +124,7 @@ function GameContent() {
         activeTab={activeTab} 
         setActiveTab={setActiveTab}
         unlockedFeatures={gameState.unlockedFeatures}
+        gameState={gameState}
       />
       
       {/* Welcome popup for new players */}

@@ -1,15 +1,26 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Disc3, ShoppingCart, Wallet, Users, BarChart2 } from "lucide-react"
 import { motion } from "framer-motion"
+import type { GameState } from "@/hooks/useGameState" 
 
 interface NavigationProps {
   activeTab: "clicker" | "upgrades" | "wallet" | "social" | "stats"
   setActiveTab: (tab: "clicker" | "upgrades" | "wallet" | "social" | "stats") => void
   unlockedFeatures: string[]
+  gameState: GameState
 }
 
-export function Navigation({ activeTab, setActiveTab, unlockedFeatures }: NavigationProps) {
+export function Navigation({ activeTab, setActiveTab, unlockedFeatures, gameState }: NavigationProps) {
+  const [hasUnclaimedAchievements, setHasUnclaimedAchievements] = useState(false)
+  
+  // Check for unclaimed achievements
+  useEffect(() => {
+    const unclaimedAchievements = gameState.achievements.some(a => a.completed && !a.claimed)
+    setHasUnclaimedAchievements(unclaimedAchievements)
+  }, [gameState.achievements])
+  
   const navItems = [
     {
       id: "clicker",
@@ -35,6 +46,7 @@ export function Navigation({ activeTab, setActiveTab, unlockedFeatures }: Naviga
       id: "stats",
       label: "Stats",
       icon: <BarChart2 className="w-5 h-5" />,
+      badge: hasUnclaimedAchievements
     },
   ]
 
@@ -50,7 +62,12 @@ export function Navigation({ activeTab, setActiveTab, unlockedFeatures }: Naviga
                 activeTab === item.id ? "text-primary" : "text-muted-foreground hover:text-primary"
               } cursor-pointer`}
             >
-              {item.icon}
+              <div className="relative">
+                {item.icon}
+                {item.badge && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-white rounded-full"></span>
+                )}
+              </div>
               <span className="text-xs mt-1 hidden sm:inline">{item.label}</span>
               {activeTab === item.id && (
                 <motion.div

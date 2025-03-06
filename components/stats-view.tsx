@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Disc3, ZapIcon, TrendingUp, Clock, Users, Award, Sparkles, CoinsIcon, Rocket, Trophy, Target } from "lucide-react"
 import type { GameState } from "@/hooks/useGameState"
 import { Progress } from "@/components/ui/progress"
@@ -16,6 +16,7 @@ interface StatsViewProps {
 
 export function StatsView({ gameState }: StatsViewProps) {
   const [activeStatsTab, setActiveStatsTab] = useState<"general" | "achievements">("general")
+  const [hasUnclaimedAchievements, setHasUnclaimedAchievements] = useState(false)
   
   // Calculate level progress
   const xpForCurrentLevel = gameState.level * 500
@@ -45,6 +46,12 @@ export function StatsView({ gameState }: StatsViewProps) {
   const passivePercentage = gameState.coinsPerSecond > 0 
     ? (gameState.coinsPerSecond / (gameState.coinsPerSecond + gameState.coinsPerClick * clicksPerSecond)) * 100
     : 0
+    
+  // Check for unclaimed achievements
+  useEffect(() => {
+    const unclaimedAchievements = gameState.achievements.some(a => a.completed && !a.claimed)
+    setHasUnclaimedAchievements(unclaimedAchievements)
+  }, [gameState.achievements])
 
   return (
     <div className="py-6">
@@ -76,9 +83,12 @@ export function StatsView({ gameState }: StatsViewProps) {
             <TrendingUp className="w-4 h-4" />
             General Stats
           </TabsTrigger>
-          <TabsTrigger value="achievements" className="flex items-center gap-2">
+          <TabsTrigger value="achievements" className="flex items-center gap-2 relative">
             <Trophy className="w-4 h-4" />
             Achievements
+            {hasUnclaimedAchievements && (
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-white rounded-full"></span>
+            )}
           </TabsTrigger>
         </TabsList>
         

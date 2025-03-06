@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Mic, Disc, Bomb, X, Play, Trophy, Battery, Clock, Target, Award } from "lucide-react"
+import { Mic, Disc, Bomb, X, Play, Trophy, Clock, Target, Award } from "lucide-react"
 import type { GameState } from "@/hooks/useGameState"
 import { Progress } from "@/components/ui/progress"
 
@@ -31,7 +31,6 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
   const [combo, setCombo] = useState(0)
   const [lastCatchTime, setLastCatchTime] = useState(0)
   const [clickEffects, setClickEffects] = useState<{ id: number; x: number; y: number; type: string; points?: number }[]>([])
-  const [energy, setEnergy] = useState(gameState.energy)
   const [spawnRate, setSpawnRate] = useState(500)
   const [specialItemTimestamp, setSpecialItemTimestamp] = useState(0)
   const [hasSpecialItem, setHasSpecialItem] = useState(false)
@@ -145,21 +144,16 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
         )
       }, 16)
 
-      const energyTimer = setInterval(() => {
-        setEnergy((prev) => Math.min(prev + gameState.energyRegenRate, gameState.maxEnergy))
-      }, 1000)
-
       return () => {
         clearInterval(timer)
         clearInterval(itemSpawner)
         clearInterval(mover)
-        clearInterval(energyTimer)
         clearInterval(specialItemTimer)
         clearInterval(difficultyAdjuster)
         document.body.style.overflow = ""
       }
     }
-  }, [gameStatus, gameState.energyRegenRate, gameState.maxEnergy, score, level, hasSpecialItem, spawnRate])
+  }, [gameStatus, score, level, hasSpecialItem, spawnRate])
 
   // Function to determine item type based on level
   const generateItemType = (currentLevel: number): "mic" | "disc" | "bomb" => {
@@ -194,142 +188,137 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
 
   const handleCatch = useCallback(
     (item: FallingItem) => {
-      if (energy >= 5) {
-        setEnergy((prev) => prev - 5)
-        const clickEffect = {
+      // Removed energy check - players can catch regardless of energy
+      const clickEffect = {
+        id: Date.now(),
+        x: item.x,
+        y: item.y,
+        type: item.type,
+      }
+      setClickEffects((prev) => [...prev, clickEffect])
+      setTimeout(() => {
+        setClickEffects((prev) => prev.filter((effect) => effect.id !== clickEffect.id))
+      }, 500)
+
+      if (item.type === "bomb") {
+        // Bomb penalty varies by level
+        const penalty = Math.min(500, score * 0.15); // Lose 15% of score or up to 500 points
+        setScore(prev => Math.max(0, prev - penalty));
+        setCombo(0)
+        setMultiplier(1)
+        
+        // Visual feedback
+        setClickEffects(prev => [...prev, {
           id: Date.now(),
           x: item.x,
-          y: item.y,
-          type: item.type,
-        }
-        setClickEffects((prev) => [...prev, clickEffect])
-        setTimeout(() => {
-          setClickEffects((prev) => prev.filter((effect) => effect.id !== clickEffect.id))
-        }, 500)
-
-        if (item.type === "bomb") {
-          // Bomb penalty varies by level
-          const penalty = Math.min(500, score * 0.15); // Lose 15% of score or up to 500 points
-          setScore(prev => Math.max(0, prev - penalty));
-          setCombo(0)
-          setMultiplier(1)
-          
-          // Visual feedback
-          setClickEffects(prev => [...prev, {
-            id: Date.now(),
-            x: item.x,
-            y: item.y - 30,
-            type: "penalty",
-            points: -Math.round(penalty)
-          }])
-        } else {
-          const now = Date.now()
-          // If catches happen within 1.5 seconds, increase combo
-          if (now - lastCatchTime < 1500) {
-            setCombo((prev) => {
-              const newCombo = prev + 1;
-              // Check for combo achievement
-              if (newCombo >= 10 && !achievements.catchStreak10) {
-                setAchievements(prev => ({...prev, catchStreak10: true}))
-                // Add bonus points for achievement
-                setScore(prev => prev + 500)
-                setClickEffects(prev => [...prev, {
-                  id: Date.now(),
-                  x: item.x,
-                  y: item.y - 60,
-                  type: "achievement",
-                  points: 500
-                }])
-              }
-              
-              // Increase multiplier every 5 combos up to 3x
-              if (newCombo % 5 === 0 && multiplier < 3) {
-                setMultiplier(prev => {
-                  const newMultiplier = Math.min(3, prev + 0.5);
-                  setShowMultiplierEffect(true)
-                  setTimeout(() => setShowMultiplierEffect(false), 2000)
-                  return newMultiplier;
-                })
-              }
-              
-              return newCombo;
-            })
-          } else {
-            setCombo(1)
-            if (multiplier > 1) {
-              setMultiplier(prev => Math.max(1, prev - 0.5))
+          y: item.y - 30,
+          type: "penalty",
+          points: -Math.round(penalty)
+        }])
+      } else {
+        const now = Date.now()
+        // If catches happen within 1.5 seconds, increase combo
+        if (now - lastCatchTime < 1500) {
+          setCombo((prev) => {
+            const newCombo = prev + 1;
+            // Check for combo achievement
+            if (newCombo >= 10 && !achievements.catchStreak10) {
+              setAchievements(prev => ({...prev, catchStreak10: true}))
+              // Add bonus points for achievement
+              setScore(prev => prev + 500)
+              setClickEffects(prev => [...prev, {
+                id: Date.now(),
+                x: item.x,
+                y: item.y - 60,
+                type: "achievement",
+                points: 500
+              }])
             }
-          }
-          setLastCatchTime(now)
-
-          let itemPoints = 0;
-          if (item.type === "mic") {
-            itemPoints = 10;
-          } else if (item.type === "disc") {
-            itemPoints = 25;
-          } else if (item.type === "special") {
-            // Special items apply a temporary boost
-            itemPoints = 100;
-            setMultiplier(prev => {
-              const newMultiplier = 3; // Special items set multiplier to max
-              setShowMultiplierEffect(true)
-              setTimeout(() => setShowMultiplierEffect(false), 3000)
-              return newMultiplier;
-            })
-            setHasSpecialItem(false)
             
-            // Restore some energy when catching special items
-            setEnergy(prev => Math.min(gameState.maxEnergy, prev + 30))
+            // Increase multiplier every 5 combos up to 3x
+            if (newCombo % 5 === 0 && multiplier < 3) {
+              setMultiplier(prev => {
+                const newMultiplier = Math.min(3, prev + 0.5);
+                setShowMultiplierEffect(true)
+                setTimeout(() => setShowMultiplierEffect(false), 2000)
+                return newMultiplier;
+              })
+            }
+            
+            return newCombo;
+          })
+        } else {
+          setCombo(1)
+          if (multiplier > 1) {
+            setMultiplier(prev => Math.max(1, prev - 0.5))
           }
-          
-          // Apply combo and multiplier to points
-          const comboBonus = Math.min(combo, 10) / 2; // Up to +5 points per combo level
-          const totalPoints = Math.round((itemPoints + comboBonus) * multiplier);
-          
-          setScore((prev) => prev + totalPoints)
-          
-          // Visual feedback for points gained
-          setClickEffects(prev => [...prev, {
-            id: Date.now(),
-            x: item.x,
-            y: item.y - 30,
-            type: "points",
-            points: totalPoints
-          }])
-          
-          // Check if score achievement reached
-          if (score > 5000 && !achievements.score5000) {
-            setAchievements(prev => ({...prev, score5000: true}))
-            // Bonus for achievement
-            setScore(prev => prev + 1000)
-            setClickEffects(prev => [...prev, {
-              id: Date.now(),
-              x: gameAreaRef.current ? gameAreaRef.current.offsetWidth / 2 : 200,
-              y: gameAreaRef.current ? gameAreaRef.current.offsetHeight / 2 : 200,
-              type: "achievement",
-              points: 1000
-            }])
-          }
-          
-          // Check if level achievement reached
-          if (level >= 3 && !achievements.level3) {
-            setAchievements(prev => ({...prev, level3: true}))
-            // Bonus for achievement
-            setScore(prev => prev + 800)
-            setClickEffects(prev => [...prev, {
-              id: Date.now(),
-              x: gameAreaRef.current ? gameAreaRef.current.offsetWidth / 2 : 200,
-              y: gameAreaRef.current ? gameAreaRef.current.offsetHeight / 2 : 200,
-              type: "achievement",
-              points: 800
-            }])
-          }
+        }
+        setLastCatchTime(now)
+
+        let itemPoints = 0;
+        if (item.type === "mic") {
+          itemPoints = 10;
+        } else if (item.type === "disc") {
+          itemPoints = 25;
+        } else if (item.type === "special") {
+          // Special items apply a temporary boost
+          itemPoints = 100;
+          setMultiplier(prev => {
+            const newMultiplier = 3; // Special items set multiplier to max
+            setShowMultiplierEffect(true)
+            setTimeout(() => setShowMultiplierEffect(false), 3000)
+            return newMultiplier;
+          })
+          setHasSpecialItem(false)
         }
         
-        setItems((prev) => prev.filter((i) => i.id !== item.id))
+        // Apply combo and multiplier to points
+        const comboBonus = Math.min(combo, 10) / 2; // Up to +5 points per combo level
+        const totalPoints = Math.round((itemPoints + comboBonus) * multiplier);
+        
+        setScore((prev) => prev + totalPoints)
+        
+        // Visual feedback for points gained
+        setClickEffects(prev => [...prev, {
+          id: Date.now(),
+          x: item.x,
+          y: item.y - 30,
+          type: "points",
+          points: totalPoints
+        }])
+        
+        // Check if score achievement reached
+        if (score > 5000 && !achievements.score5000) {
+          setAchievements(prev => ({...prev, score5000: true}))
+          // Bonus for achievement
+          setScore(prev => prev + 1000)
+          setClickEffects(prev => [...prev, {
+            id: Date.now(),
+            x: gameAreaRef.current ? gameAreaRef.current.offsetWidth / 2 : 200,
+            y: gameAreaRef.current ? gameAreaRef.current.offsetHeight / 2 : 200,
+            type: "achievement",
+            points: 1000
+          }])
+        }
+        
+        // Check if level achievement reached
+        if (level >= 3 && !achievements.level3) {
+          setAchievements(prev => ({...prev, level3: true}))
+          // Bonus for achievement
+          setScore(prev => prev + 800)
+          setClickEffects(prev => [...prev, {
+            id: Date.now(),
+            x: gameAreaRef.current ? gameAreaRef.current.offsetWidth / 2 : 200,
+            y: gameAreaRef.current ? gameAreaRef.current.offsetHeight / 2 : 200,
+            type: "achievement",
+            points: 800
+          }])
+        }
       }
+      
+      setItems((prev) => prev.filter((i) => i.id !== item.id))
     },
-    [combo, lastCatchTime, energy, multiplier, score, achievements, gameState.maxEnergy, level]
+    [combo, lastCatchTime, multiplier, score, achievements, level]
   )
 
   const earnedCoins = Math.round(score * 10) // 10 $KNYE per point
@@ -467,22 +456,10 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
             </div>
             
             <div className="flex items-center">
-              <Battery className="w-5 h-5 mr-2 text-primary" />
-              <div className="w-20">
-                <Progress
-                  value={(energy / gameState.maxEnergy) * 100}
-                  className="h-2 bg-secondary/60"
-                />
-              </div>
+              <Target className="w-5 h-5 mr-2 text-primary" />
+              <span className="text-lg text-foreground">{Math.min(combo, 10)}x</span>
             </div>
           </div>
-          
-          {combo > 1 && (
-            <div className="absolute bottom-4 left-4 text-lg text-foreground flex items-center">
-              <Target className="w-5 h-5 mr-2 text-primary" />
-              <span>Combo: x{Math.min(combo, 10)}</span>
-            </div>
-          )}
           
           {/* Show visual effects for special events */}
           <AnimatePresence>

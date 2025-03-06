@@ -2,14 +2,13 @@
 
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
-import { Disc3, ZapIcon, Gamepad2, Battery, TrendingUp, Clock } from "lucide-react"
+import { Gamepad2 } from "lucide-react"
 import type { GameState } from "@/hooks/useGameState"
 import { AnimatePresence, motion } from "framer-motion"
 import Image from "next/image"
 import { DropGame } from "./drop-game"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Coins } from "lucide-react"
 
 interface ClickerViewProps {
   gameState: GameState
@@ -57,6 +56,7 @@ export function ClickerView({ gameState }: ClickerViewProps) {
       // Calculate earned coins with combo multiplier
       const earnedCoins = gameState.coinsPerClick * comboMultiplier;
       
+      // Position the effect relative to click position
       const newEffect = { id: Date.now(), x, y, amount: earnedCoins }
       setClickEffect((prev) => [...prev, newEffect])
 
@@ -150,39 +150,6 @@ export function ClickerView({ gameState }: ClickerViewProps) {
             </motion.div>
           ))}
         </AnimatePresence>
-      </div>
-
-      <div className="w-full max-w-md space-y-4 mb-8">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-secondary p-3 rounded-lg">
-            <div className="flex items-center">
-              <ZapIcon className="w-5 h-5 mr-2 text-primary" />
-              <span className="text-muted-foreground">Per Click</span>
-            </div>
-            <span className="text-xl font-bold text-primary">{gameState.coinsPerClick.toFixed(2)} $KNYE</span>
-          </div>
-          <div className="bg-secondary p-3 rounded-lg">
-            <div className="flex items-center">
-              <Disc3 className="w-5 h-5 mr-2 text-primary" />
-              <span className="text-muted-foreground">Per Second</span>
-            </div>
-            <span className="text-xl font-bold text-primary">{gameState.coinsPerSecond.toFixed(2)} $KNYE</span>
-          </div>
-          <div className="bg-secondary p-3 rounded-lg">
-            <div className="flex items-center">
-              <TrendingUp className="w-5 h-5 mr-2 text-primary" />
-              <span className="text-muted-foreground">Clicked</span>
-            </div>
-            <span className="text-xl font-bold text-primary">{gameState.totalClicks.toLocaleString()}</span>
-          </div>
-          <div className="bg-secondary p-3 rounded-lg">
-            <div className="flex items-center">
-              <Clock className="w-5 h-5 mr-2 text-primary" />
-              <span className="text-muted-foreground">Combo</span>
-            </div>
-            <span className="text-xl font-bold text-primary">x{comboMultiplier.toFixed(1)}</span>
-          </div>
-        </div>
       </div>
 
       <Card className="w-full max-w-md">

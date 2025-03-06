@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Coins, Disc3, Battery, Sparkles, Rocket, Globe, MessageSquare } from "lucide-react"
+import { Coins, Disc3, Battery, Sparkles, Rocket, Globe, MessageSquare, ZapIcon } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import type { GameState } from "@/hooks/useGameState"
 import { AnimatePresence, motion } from "framer-motion"
@@ -15,7 +15,6 @@ interface GameHeaderProps {
 export function GameHeader({ gameState }: GameHeaderProps) {
   const [showLevelUp, setShowLevelUp] = useState(false)
   const [previousLevel, setPreviousLevel] = useState(gameState.level)
-  const [hasUnclaimedAchievements, setHasUnclaimedAchievements] = useState(false)
   
   // Calculate XP progress
   const xpForCurrentLevel = gameState.level * 500
@@ -24,6 +23,17 @@ export function GameHeader({ gameState }: GameHeaderProps) {
   // Calculate energy percentage
   const energyPercentage = (gameState.energy / gameState.maxEnergy) * 100
   
+  // Format large numbers with K, M abbreviations
+  const formatLargeNumber = (num: number): string => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + 'M';
+    } else if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'K';
+    } else {
+      return Math.floor(num).toString();
+    }
+  }
+  
   useEffect(() => {
     // Check for level up
     if (gameState.level > previousLevel) {
@@ -31,11 +41,7 @@ export function GameHeader({ gameState }: GameHeaderProps) {
       setTimeout(() => setShowLevelUp(false), 3000)
     }
     setPreviousLevel(gameState.level)
-    
-    // Check for unclaimed achievements
-    const unclaimedAchievements = gameState.achievements.some(a => a.completed && !a.claimed)
-    setHasUnclaimedAchievements(unclaimedAchievements)
-  }, [gameState.level, gameState.achievements, previousLevel])
+  }, [gameState.level, previousLevel])
 
   return (
     <header className="sticky top-0 z-10 backdrop-blur-md bg-background/80 py-4">
@@ -46,7 +52,7 @@ export function GameHeader({ gameState }: GameHeaderProps) {
               <span className="text-2xl font-bold text-primary">$KNYE</span>
               <div className="bg-secondary px-3 py-1 rounded-full flex items-center">
                 <Coins className="w-4 h-4 text-primary mr-2" />
-                <span className="text-white font-medium text-sm">{Math.floor(gameState.coins).toLocaleString()}</span>
+                <span className="text-white font-medium text-sm">{formatLargeNumber(gameState.coins)}</span>
               </div>
               
               {gameState.prestigeLevel > 0 && (
@@ -58,22 +64,10 @@ export function GameHeader({ gameState }: GameHeaderProps) {
             </div>
             
             <div className="flex items-center space-x-4">
-              <AnimatePresence>
-                {hasUnclaimedAchievements && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    className="px-2 py-1 rounded-full bg-primary text-primary-foreground text-xs flex items-center"
-                  >
-                    <span className="relative flex h-2 w-2 mr-1">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-black opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-black"></span>
-                    </span>
-                    Rewards
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              <div className="flex items-center text-sm text-muted-foreground">
+                <ZapIcon className="w-4 h-4 mr-1" />
+                <span>{gameState.coinsPerClick.toFixed(1)}/click</span>
+              </div>
               
               <div className="flex items-center text-sm text-muted-foreground">
                 <Disc3 className="w-4 h-4 mr-1" />
@@ -101,7 +95,7 @@ export function GameHeader({ gameState }: GameHeaderProps) {
           </div>
           
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 w-1/3">
+            <div className="flex items-center gap-2 w-1/2">
               <Battery className="w-4 h-4 text-primary shrink-0" />
               <Progress value={energyPercentage} className="h-2 flex-1 bg-secondary/60" />
               <span className="text-xs text-muted-foreground whitespace-nowrap">
@@ -109,7 +103,7 @@ export function GameHeader({ gameState }: GameHeaderProps) {
               </span>
             </div>
             
-            <div className="w-2/3 flex items-center gap-2">
+            <div className="w-1/2 flex items-center gap-2">
               <div className="flex items-center gap-1 shrink-0">
                 <Rocket className="w-4 h-4 text-primary" />
                 <span className="text-xs text-muted-foreground">Lvl {gameState.level}</span>

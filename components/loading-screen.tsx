@@ -4,16 +4,16 @@ import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 
 export function LoadingScreen() {
-  const [loadingText, setLoadingText] = useState("Загрузка")
+  const [loadingText, setLoadingText] = useState("Loading")
   
   // Animate loading dots
   useEffect(() => {
     const interval = setInterval(() => {
       setLoadingText(prev => {
-        if (prev === "Загрузка...") return "Загрузка"
-        if (prev === "Загрузка..") return "Загрузка..."
-        if (prev === "Загрузка.") return "Загрузка.."
-        return "Загрузка."
+        if (prev === "Loading...") return "Loading"
+        if (prev === "Loading..") return "Loading..."
+        if (prev === "Loading.") return "Loading.."
+        return "Loading."
       })
     }, 500)
     
@@ -29,12 +29,12 @@ export function LoadingScreen() {
       />
       
       <div className="flex flex-col items-center">
-        <h2 className="text-xl font-bold text-primary mb-2">$KNYE Clicker</h2>
+        <h2 className="text-xl font-bold text-primary mb-2">$KNYE</h2>
         <p className="text-muted-foreground">{loadingText}</p>
       </div>
       
       <div className="absolute bottom-8 left-0 right-0 text-center text-xs text-muted-foreground">
-        <p>Подключение к Telegram...</p>
+        <p>Syncing...</p>
       </div>
     </div>
   )

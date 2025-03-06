@@ -75,24 +75,26 @@ export function GameHeader({ gameState }: GameHeaderProps) {
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 w-1/2">
-              <Battery className="w-4 h-4 text-primary shrink-0" />
-              <Progress value={energyPercentage} className="h-2 flex-1 bg-secondary/60" />
-              <span className="text-xs text-muted-foreground whitespace-nowrap">
-                {Math.floor(gameState.energy)}/{gameState.maxEnergy}
-              </span>
+          {/* Changed from side-by-side to stacked layout for progress bars */}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-1">
+              <Rocket className="w-4 h-4 text-primary shrink-0" />
+              <div className="flex-1 flex items-center gap-1">
+                <Progress value={xpProgress} className="h-2 flex-1 bg-secondary/60" />
+                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                  Lvl {gameState.level} ({gameState.experience}/{xpForCurrentLevel})
+                </span>
+              </div>
             </div>
             
-            <div className="w-1/2 flex items-center gap-1">
-              <div className="flex items-center gap-1 shrink-0">
-                <Rocket className="w-4 h-4 text-primary" />
-                <span className="text-xs text-muted-foreground">Lvl {gameState.level}</span>
+            <div className="flex items-center gap-1">
+              <Battery className="w-4 h-4 text-primary shrink-0" />
+              <div className="flex-1 flex items-center gap-1">
+                <Progress value={energyPercentage} className="h-2 flex-1 bg-secondary/60" />
+                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                  {Math.floor(gameState.energy)}/{gameState.maxEnergy}
+                </span>
               </div>
-              <Progress value={xpProgress} className="h-2 flex-1 bg-secondary/60" />
-              <span className="text-xs text-muted-foreground">
-                {gameState.experience}/{xpForCurrentLevel}
-              </span>
             </div>
           </div>
         </div>

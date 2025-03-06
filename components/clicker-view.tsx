@@ -97,11 +97,13 @@ export function ClickerView({ gameState }: ClickerViewProps) {
 
   return (
     <div ref={containerRef} className="flex flex-col items-center justify-start h-full">
-      {/* Added heading as requested */}
-      <h1 className="text-3xl font-bold mb-2 mt-8 text-primary">Earn $KNYE</h1>
-      <p className="text-muted-foreground mb-6 text-center">Click the coin to mine cryptocurrency</p>
+      {/* Changed to left-aligned h2 title like other sections */}
+      <div className="mb-4 w-full">
+        <h2 className="text-2xl font-bold mb-1 text-primary">Earn $KNYE</h2>
+        <p className="text-muted-foreground">Click the coin to mine cryptocurrency</p>
+      </div>
       
-      <div className="relative mb-6">
+      <div className="relative mb-6 mt-2 flex justify-center w-full">
         <motion.div
           ref={clickerRef}
           className="relative z-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg cursor-pointer overflow-hidden transition-transform duration-100"

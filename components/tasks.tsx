@@ -12,9 +12,9 @@ interface TasksProps {
 }
 
 const TASKS = [
-  { id: "telegram", name: "Subscribe to Telegram Channel", reward: 1000 },
-  { id: "twitter", name: "Follow on Twitter", reward: 800 },
-  { id: "discord", name: "Join Discord Server", reward: 1200 },
+  { id: "telegram", name: "Subscribe to Telegram", reward: 1000 },
+  { id: "twitter", name: "Follow on X", reward: 800 },
+  { id: "discord", name: "Join Discord", reward: 1200 },
 ]
 
 export function Tasks({ gameState }: TasksProps) {

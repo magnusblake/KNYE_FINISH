@@ -39,7 +39,7 @@ interface UpgradeItemProps {
   cost: number
   level: number
   maxLevel: number
-  effect: string
+  effectDisplay: string
   baseEffect: number
   onPurchase: () => void
   canAfford: boolean
@@ -55,7 +55,7 @@ function UpgradeItem({
   cost,
   level,
   maxLevel,
-  effect,
+  effectDisplay,
   baseEffect,
   onPurchase,
   canAfford,
@@ -116,7 +116,7 @@ function UpgradeItem({
             indicatorColor={locked ? "bg-muted" : "bg-primary"} 
           />
           <div className="flex justify-between items-center">
-            <span className="text-muted-foreground text-xs font-medium">{effect}</span>
+            <span className="text-muted-foreground text-xs font-medium">{effectDisplay}</span>
             <Button
               size="sm"
               onClick={handlePurchase}
@@ -156,82 +156,92 @@ export function UpgradesView({ gameState }: UpgradesViewProps) {
     }
   }
   
-  // FIX: Correct display for upgrade effects showing the actual effect value, not calculated values
-  const clickUpgrades = gameState.clickUpgrades.map((upgrade, index) => ({
-    id: `click-${index}`,
-    title: upgrade.name,
-    description: upgrade.description || `Increase your clicking power.`,
-    cost: Math.floor(upgrade.cost),
-    level: upgrade.level,
-    maxLevel: upgrade.maxLevel,
-    baseEffect: upgrade.effect,
-    effect: `+${Math.floor(upgrade.effect)} coins per click`,
-    onPurchase: () => gameState.purchaseClickUpgrade(index),
-    canAfford: gameState.coins >= upgrade.cost,
-    locked: !upgrade.unlocked,
-    icon:
-      upgrade.name === "Energy Drink" ? (
-        <CoffeeIcon className="w-5 h-5" />
-      ) : upgrade.name === "Power Nap" ? (
-        <BatteryIcon className="w-5 h-5" />
-      ) : upgrade.name === "Microphone" ? (
-        <Mic2Icon className="w-5 h-5" />
-      ) : upgrade.name === "Gold Chain" ? (
-        <LinkIcon className="w-5 h-5" />
-      ) : upgrade.name === "Designer Shoes" ? (
-        <ShirtIcon className="w-5 h-5" />
-      ) : upgrade.name === "Studio Time" ? (
-        <Music className="w-5 h-5" />
-      ) : upgrade.name === "Platinum Status" ? (
-        <Trophy className="w-5 h-5" />
-      ) : (
-        <PaletteIcon className="w-5 h-5" />
-      ),
-  }))
+  // Properly formatted click upgrade effects showing the actual number being added
+  const clickUpgrades = gameState.clickUpgrades.map((upgrade, index) => {
+    // Calculate what the next level effect would be (for the display)
+    const nextLevelEffect = Math.floor(upgrade.effect * upgrade.effectMultiplier);
+    return {
+      id: `click-${index}`,
+      title: upgrade.name,
+      description: upgrade.description || `Increase your clicking power.`,
+      cost: Math.floor(upgrade.cost),
+      level: upgrade.level,
+      maxLevel: upgrade.maxLevel,
+      baseEffect: upgrade.effect,
+      // Show the exact effect that will be added at this upgrade level
+      effectDisplay: `+${nextLevelEffect} coins per click`,
+      onPurchase: () => gameState.purchaseClickUpgrade(index),
+      canAfford: gameState.coins >= upgrade.cost,
+      locked: !upgrade.unlocked,
+      icon:
+        upgrade.name === "Energy Drink" ? (
+          <CoffeeIcon className="w-5 h-5" />
+        ) : upgrade.name === "Power Nap" ? (
+          <BatteryIcon className="w-5 h-5" />
+        ) : upgrade.name === "Microphone" ? (
+          <Mic2Icon className="w-5 h-5" />
+        ) : upgrade.name === "Gold Chain" ? (
+          <LinkIcon className="w-5 h-5" />
+        ) : upgrade.name === "Designer Shoes" ? (
+          <ShirtIcon className="w-5 h-5" />
+        ) : upgrade.name === "Studio Time" ? (
+          <Music className="w-5 h-5" />
+        ) : upgrade.name === "Platinum Status" ? (
+          <Trophy className="w-5 h-5" />
+        ) : (
+          <PaletteIcon className="w-5 h-5" />
+        ),
+    }
+  })
 
-  const passiveUpgrades = gameState.passiveUpgrades.map((upgrade, index) => ({
-    id: `passive-${index}`,
-    title: upgrade.name,
-    description: upgrade.description || 
-      (upgrade.name === "Energy Drink"
-        ? "Increase your maximum energy."
-        : upgrade.name === "Power Nap"
-          ? "Increase your energy regeneration rate."
-          : "Earn coins automatically."),
-    cost: Math.floor(upgrade.cost),
-    level: upgrade.level,
-    maxLevel: upgrade.maxLevel,
-    baseEffect: upgrade.effect,
-    effect:
-      upgrade.name === "Energy Drink"
-        ? `+${Math.floor(upgrade.effect)} max energy`
-        : upgrade.name === "Power Nap"
-          ? `+${Math.floor(upgrade.effect)} energy/sec`
-          : upgrade.id?.startsWith("click") 
-            ? `+${Math.floor(upgrade.effect)} coins/click`
-            : `+${Math.floor(upgrade.effect)} coins/sec`,
-    onPurchase: () => gameState.purchasePassiveUpgrade(index),
-    canAfford: gameState.coins >= upgrade.cost,
-    locked: !upgrade.unlocked,
-    icon:
-      upgrade.name === "Fan Base" ? (
-        <UsersIcon className="w-5 h-5" />
-      ) : upgrade.name === "Record Deal" ? (
-        <Disc3Icon className="w-5 h-5" />
-      ) : upgrade.name === "Fashion Line" ? (
-        <PaletteIcon className="w-5 h-5" />
-      ) : upgrade.name === "Energy Drink" ? (
-        <CoffeeIcon className="w-5 h-5" />
-      ) : upgrade.name === "Power Nap" ? (
-        <BatteryIcon className="w-5 h-5" />
-      ) : upgrade.name === "Music Festival" ? (
-        <Headphones className="w-5 h-5" />
-      ) : upgrade.name === "World Tour" ? (
-        <Globe className="w-5 h-5" />
-      ) : (
-        <Radio className="w-5 h-5" />
-      ),
-  }))
+  const passiveUpgrades = gameState.passiveUpgrades.map((upgrade, index) => {
+    // Calculate what the next level effect would be (for the display)
+    const nextLevelEffect = Math.floor(upgrade.effect * upgrade.effectMultiplier);
+    return {
+      id: `passive-${index}`,
+      title: upgrade.name,
+      description: upgrade.description || 
+        (upgrade.name === "Energy Drink"
+          ? "Increase your maximum energy."
+          : upgrade.name === "Power Nap"
+            ? "Increase your energy regeneration rate."
+            : "Earn coins automatically."),
+      cost: Math.floor(upgrade.cost),
+      level: upgrade.level,
+      maxLevel: upgrade.maxLevel,
+      baseEffect: upgrade.effect,
+      // Show the exact effect that will be added with this upgrade
+      effectDisplay:
+        upgrade.name === "Energy Drink"
+          ? `+${nextLevelEffect} max energy`
+          : upgrade.name === "Power Nap"
+            ? `+${nextLevelEffect} energy/sec`
+            : upgrade.id?.startsWith("click") 
+              ? `+${nextLevelEffect} coins/click`
+              : `+${nextLevelEffect} coins/sec`,
+      onPurchase: () => gameState.purchasePassiveUpgrade(index),
+      canAfford: gameState.coins >= upgrade.cost,
+      locked: !upgrade.unlocked,
+      icon:
+        upgrade.name === "Fan Base" ? (
+          <UsersIcon className="w-5 h-5" />
+        ) : upgrade.name === "Record Deal" ? (
+          <Disc3Icon className="w-5 h-5" />
+        ) : upgrade.name === "Fashion Line" ? (
+          <PaletteIcon className="w-5 h-5" />
+        ) : upgrade.name === "Energy Drink" ? (
+          <CoffeeIcon className="w-5 h-5" />
+        ) : upgrade.name === "Power Nap" ? (
+          <BatteryIcon className="w-5 h-5" />
+        ) : upgrade.name === "Music Festival" ? (
+          <Headphones className="w-5 h-5" />
+        ) : upgrade.name === "World Tour" ? (
+          <Globe className="w-5 h-5" />
+        ) : (
+          <Radio className="w-5 h-5" />
+        ),
+    }
+  })
 
   return (
     <div className="py-4">

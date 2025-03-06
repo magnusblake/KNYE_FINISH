@@ -40,12 +40,9 @@ export function StatsView({ gameState }: StatsViewProps) {
     return `${hours}h ${minutes}m`
   }
   
-  // Calculate more engaging stats - all integers now
-  const clicksPerSecond = Math.floor(gameState.totalClicks / Math.max(1, gameState.totalPlayTime))
-  const avgCoinsPerClick = Math.floor(gameState.coins / Math.max(1, gameState.totalClicks))
-  const passivePercentage = Math.floor(gameState.coinsPerSecond > 0 
-      ? (gameState.coinsPerSecond / (gameState.coinsPerSecond + gameState.coinsPerClick * clicksPerSecond)) * 100
-      : 0)
+  // Fixed Average Coins Per Click calculation
+  const totalClicks = Math.max(1, gameState.totalClicks)
+  const avgCoinsPerClick = Math.floor(gameState.stats.totalCoinsEarned / totalClicks)
     
   // Check for unclaimed achievements
   useEffect(() => {
@@ -105,7 +102,7 @@ export function StatsView({ gameState }: StatsViewProps) {
               icon={<Disc3 className="w-6 h-6" />}
               title="Passive Income"
               value={`${Math.floor(gameState.coinsPerSecond)} $KNYE/s`}
-              subtext={`${Math.floor(passivePercentage)}% of your income is passive`}
+              subtext={`Total income: ${formatNumber(gameState.coins)} $KNYE`}
             />
 
             <StatCard
@@ -126,7 +123,7 @@ export function StatsView({ gameState }: StatsViewProps) {
               icon={<CoinsIcon className="w-6 h-6" />}
               title="Lifetime Earnings"
               value={`${formatNumber(gameState.stats.totalCoinsEarned)} $KNYE`}
-              subtext={`Average: ${Math.floor(avgCoinsPerClick)} coins per click`}
+              subtext={`Avg: ${avgCoinsPerClick} $KNYE/click`}
             />
             
             {gameState.prestigeLevel > 0 && (

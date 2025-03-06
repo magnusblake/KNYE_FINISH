@@ -655,12 +655,18 @@ export function useGameState(): GameState {
         setIsDataSynced(false)
         return newPlayTime;
       });
-      // Simulate online users
-      setOnlineUsers(Math.floor(Math.random() * 100) + 50 + (prestigeLevel * 20));
+      
+      // Only update online users every 20 seconds for more realistic behavior
+      if (totalPlayTime % 20 === 0) {
+        // More realistic online user count with small variations
+        const baseCount = 50 + (prestigeLevel * 20);
+        const variation = Math.floor(Math.random() * 5) - 2; // Random variation between -2 and +2
+        setOnlineUsers(Math.max(30, baseCount + variation));
+      }
     }, 1000)
-
+  
     return () => clearInterval(timer)
-  }, [stats.longestPlaySession, prestigeLevel])
+  }, [stats.longestPlaySession, prestigeLevel, totalPlayTime])
 
   // Level progression system
   useEffect(() => {

@@ -383,12 +383,6 @@ export function WalletView({ gameState }: WalletViewProps) {
                   </div>
                 </div>
               </CardContent>
-              
-              <CardFooter className="flex-col">
-                <p className="text-sm text-muted-foreground mb-2 text-center w-full">
-                  Note: This is a simulation. In a real app, these would be actual TON transactions.
-                </p>
-              </CardFooter>
             </Card>
           </TabsContent>
         </Tabs>

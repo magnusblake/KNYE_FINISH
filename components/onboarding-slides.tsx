@@ -10,7 +10,7 @@ interface OnboardingProps {
   userName?: string | null
 }
 
-export function Onboarding({ onComplete, userName }: OnboardingProps) {
+export function OnboardingSlides({ onComplete, userName }: OnboardingProps) {
   const [currentSlide, setCurrentSlide] = useState(0)
   
   const slides = [

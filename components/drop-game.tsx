@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Mic, Disc, Bomb, X, Play, Trophy, Clock, Target, Award } from "lucide-react"
+import { Mic, Disc, Bomb, X, Play, Trophy, Clock, Target, Award, CheckCircle } from "lucide-react"
 import type { GameState } from "@/hooks/useGameState"
 import { Progress } from "@/components/ui/progress"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
@@ -21,6 +21,17 @@ interface FallingItem {
   speed: number
   rotation: number
   scale: number
+  animationDelay?: number
+}
+
+interface Particle {
+  id: number
+  x: number
+  y: number
+  size: number
+  speedX: number
+  speedY: number
+  opacity: number
 }
 
 export function DropGame({ gameState, onClose }: DropGameProps) {
@@ -39,10 +50,47 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
     score5000: false,
     level3: false
   })
+  const [particles, setParticles] = useState<Particle[]>([])
 
   const canPlay = useCallback(() => {
     return Date.now() - gameState.lastDropGameTimestamp >= 2 * 60 * 60 * 1000
   }, [gameState.lastDropGameTimestamp])
+
+  // Create background particles
+  useEffect(() => {
+    if (gameStatus === "playing") {
+      const createParticles = () => {
+        const newParticles: Particle[] = [];
+        for (let i = 0; i < 50; i++) {
+          newParticles.push({
+            id: Date.now() + i,
+            x: Math.random() * 100, // % of screen width
+            y: Math.random() * 100, // % of screen height
+            size: Math.random() * 3 + 1,
+            speedX: (Math.random() - 0.5) * 0.1,
+            speedY: (Math.random() - 0.5) * 0.1,
+            opacity: Math.random() * 0.5 + 0.2
+          });
+        }
+        setParticles(newParticles);
+      };
+      
+      createParticles();
+      
+      const particleInterval = setInterval(() => {
+        setParticles(prev => {
+          return prev.map(p => ({
+            ...p,
+            x: (p.x + p.speedX + 100) % 100, // Wrap around screen
+            y: (p.y + p.speedY + 100) % 100, // Wrap around screen
+            opacity: p.opacity > 0.8 ? 0.5 : p.opacity + 0.01
+          }));
+        });
+      }, 50);
+      
+      return () => clearInterval(particleInterval);
+    }
+  }, [gameStatus]);
 
   useEffect(() => {
     if (gameStatus === "playing") {
@@ -68,7 +116,7 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
         }
       }, 5000)
 
-      // Item generator
+      // Item generator with animation delays
       const itemSpawner = setInterval(() => {
         if (gameAreaRef.current) {
           const width = gameAreaRef.current.offsetWidth
@@ -76,12 +124,12 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
           const newItem: FallingItem = {
             id: Date.now(),
             type: itemType,
-            x: Math.random() * (width - 40),
-            y: -40,
-            // Increased base speed and level scaling
+            x: Math.random() * (width - 60),
+            y: -60,
             speed: Math.random() * (4 + level / 2) + 3,
             rotation: Math.random() * 360,
             scale: itemType === "bomb" ? 1.1 : 1.0,
+            animationDelay: Math.random() * 0.5 // Random animation delay for more natural movement
           }
           setItems((prev) => [...prev, newItem])
         }
@@ -199,12 +247,14 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
   // Reduced reward ratio: now 8 $KNYE per point instead of 10
   const earnedCoins = Math.floor(score * 8)
 
-  // Start Game Modal (Completely rebuilt)
+  // Start Game Modal (Enhanced with better visuals)
   const StartGameModal = () => (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-md flex items-center justify-center p-4">
       <Card className="max-w-md w-full bg-secondary border-none">
         <CardHeader className="text-center pb-2">
-          <Play className="w-12 h-12 text-primary mx-auto mb-2" />
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2">
+            <Play className="w-10 h-10 text-primary" />
+          </div>
           <CardTitle className="text-2xl text-primary">Drop Game</CardTitle>
           <CardDescription>
             Catch microphones and discs to earn $KNYE. Avoid bombs!
@@ -215,15 +265,21 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
             <div className="text-sm font-medium text-foreground mb-2">How to play:</div>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
-                <Mic className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                <div className="bg-primary/20 p-1 rounded w-6 h-6 flex items-center justify-center mt-0.5 shrink-0">
+                  <Mic className="w-4 h-4 text-primary" />
+                </div>
                 <span>Tap microphones for 5 points</span>
               </li>
               <li className="flex items-start gap-2">
-                <Disc className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                <div className="bg-primary/20 p-1 rounded w-6 h-6 flex items-center justify-center mt-0.5 shrink-0">
+                  <Disc className="w-4 h-4 text-primary" />
+                </div>
                 <span>Tap discs for 15 points</span>
               </li>
               <li className="flex items-start gap-2">
-                <Bomb className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
+                <div className="bg-destructive/20 p-1 rounded w-6 h-6 flex items-center justify-center mt-0.5 shrink-0">
+                  <Bomb className="w-4 h-4 text-destructive" />
+                </div>
                 <span>Avoid bombs or lose points</span>
               </li>
             </ul>
@@ -258,40 +314,47 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
     </div>
   )
 
-  // Game Over Modal (Completely rebuilt)
+  // Game Over Modal (Enhanced with better visuals)
   const GameOverModal = () => (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-md flex items-center justify-center p-4">
-      <Card className="max-w-md w-full bg-secondary border-none">
-        <CardHeader className="text-center">
-          <Trophy className="w-12 h-12 text-primary mx-auto mb-2" />
+      <Card className="max-w-md w-full bg-secondary border-none overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
+        <CardHeader className="text-center relative z-10">
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2">
+            <Trophy className="w-10 h-10 text-primary" />
+          </div>
           <CardTitle className="text-2xl text-primary">Game Results</CardTitle>
           <CardDescription>
             Good job! You've completed the drop game.
           </CardDescription>
         </CardHeader>
-        <CardContent className="pt-2">
+        <CardContent className="pt-2 relative z-10">
           <div className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-accent p-4 rounded-lg text-center">
-              <p className="text-sm text-muted-foreground mb-1">Score</p>
-              <p className="text-2xl font-bold text-primary">{score}</p>
+            <div className="bg-accent p-4 rounded-lg text-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
+              <p className="text-sm text-muted-foreground mb-1 relative z-10">Score</p>
+              <p className="text-2xl font-bold text-primary relative z-10">{score}</p>
             </div>
-            <div className="bg-accent p-4 rounded-lg text-center">
-              <p className="text-sm text-muted-foreground mb-1">Level</p>
-              <p className="text-2xl font-bold text-primary">{level}</p>
+            <div className="bg-accent p-4 rounded-lg text-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
+              <p className="text-sm text-muted-foreground mb-1 relative z-10">Level</p>
+              <p className="text-2xl font-bold text-primary relative z-10">{level}</p>
             </div>
-            <div className="bg-accent p-4 rounded-lg text-center col-span-2">
-              <p className="text-sm text-muted-foreground mb-1">Reward</p>
-              <p className="text-2xl font-bold text-primary">{earnedCoins} $KNYE</p>
+            <div className="bg-accent p-4 rounded-lg text-center col-span-2 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
+              <p className="text-sm text-muted-foreground mb-1 relative z-10">Reward</p>
+              <p className="text-2xl font-bold text-primary relative z-10">{earnedCoins} $KNYE</p>
             </div>
           </div>
           
           {(achievements.score5000 || achievements.level3) && (
-            <div className="bg-accent p-4 rounded-lg mb-6">
-              <div className="flex items-center mb-2">
+            <div className="bg-accent p-4 rounded-lg mb-6 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
+              <div className="flex items-center mb-2 relative z-10">
                 <Award className="w-5 h-5 text-primary mr-2" />
                 <span className="font-medium text-foreground">Achievements Unlocked!</span>
               </div>
-              <div className="space-y-2 text-sm">
+              <div className="space-y-2 text-sm relative z-10">
                 {achievements.score5000 && (
                   <div className="flex items-center text-muted-foreground">
                     <CheckCircle className="w-4 h-4 mr-2 text-primary" />
@@ -308,7 +371,7 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
             </div>
           )}
         </CardContent>
-        <CardFooter className="flex justify-between border-t border-border pt-4">
+        <CardFooter className="flex justify-between border-t border-border pt-4 relative z-10">
           <Button 
             onClick={handleStart} 
             variant="outline"
@@ -352,6 +415,25 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
+          {/* Improved background with particles */}
+          {particles.map(particle => (
+            <div 
+              key={particle.id}
+              className="absolute rounded-full bg-white pointer-events-none"
+              style={{
+                width: `${particle.size}px`,
+                height: `${particle.size}px`,
+                left: `${particle.x}%`,
+                top: `${particle.y}%`,
+                opacity: particle.opacity,
+                boxShadow: `0 0 ${particle.size * 2}px rgba(255,255,255,0.5)`
+              }}
+            />
+          ))}
+          
+          {/* Subtle gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/10 to-background/30 pointer-events-none" />
+          
           <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center bg-background/20 backdrop-blur-sm z-10">
             <div className="flex items-center">
               <Clock className="w-5 h-5 mr-2 text-primary" />
@@ -409,22 +491,52 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
             {items.map((item) => (
               <motion.div
                 key={item.id}
-                className="absolute cursor-pointer"
-                initial={{ x: item.x, y: -40, rotate: 0, scale: item.scale || 1 }}
-                animate={{ y: item.y, rotate: item.rotation }}
+                className="absolute cursor-pointer drop-shadow-lg"
+                initial={{ 
+                  x: item.x, 
+                  y: -60, 
+                  rotate: 0, 
+                  scale: item.scale || 1,
+                  opacity: 0 
+                }}
+                animate={{ 
+                  y: item.y, 
+                  rotate: item.rotation,
+                  opacity: 1 
+                }}
+                transition={{ 
+                  opacity: { duration: 0.3 },
+                  delay: item.animationDelay || 0
+                }}
                 exit={{ opacity: 0, scale: 0 }}
-                transition={{ duration: 0 }}
                 onClick={() => handleCatch(item)}
               >
-                {item.type === "mic" && <Mic className="w-12 h-12 text-primary" />}
-                {item.type === "disc" && <Disc className="w-12 h-12 text-primary" />}
-                {item.type === "bomb" && <Bomb className="w-12 h-12 text-destructive" />}
+                {item.type === "mic" && (
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-primary rounded-full opacity-10 transform scale-110 animate-pulse" />
+                    <Mic className="w-14 h-14 text-primary drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]" />
+                  </div>
+                )}
+                {item.type === "disc" && (
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-primary rounded-full opacity-10 transform scale-110 animate-pulse" />
+                    <Disc className="w-14 h-14 text-primary drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]" />
+                  </div>
+                )}
+                {item.type === "bomb" && (
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-destructive rounded-full opacity-10 transform scale-110 animate-pulse" />
+                    <Bomb className="w-14 h-14 text-destructive drop-shadow-[0_0_10px_rgba(255,0,0,0.3)]" />
+                  </div>
+                )}
                 {item.type === "special" && (
                   <motion.div 
                     animate={{ scale: [1, 1.2, 1], rotate: [0, 180, 360] }}
                     transition={{ duration: 3, repeat: Infinity }}
+                    className="relative"
                   >
-                    <Award className="w-14 h-14 text-primary animate-pulse-glow" />
+                    <div className="absolute inset-0 bg-primary rounded-full opacity-20 transform scale-125 animate-pulse" />
+                    <Award className="w-16 h-16 text-primary animate-pulse-glow drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]" />
                   </motion.div>
                 )}
               </motion.div>
@@ -442,23 +554,23 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
                 transition={{ duration: 0.8 }}
               >
                 {effect.type === "bomb" ? (
-                  <div className="w-16 h-16 bg-destructive rounded-full flex items-center justify-center">
+                  <div className="w-16 h-16 bg-destructive rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(255,0,0,0.5)]">
                     <Bomb className="w-8 h-8 text-white" />
                   </div>
                 ) : effect.type === "special" ? (
-                  <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
+                  <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.5)]">
                     <Award className="w-8 h-8 text-black" />
                   </div>
                 ) : effect.type === "points" ? (
-                  <div className="text-xl font-bold text-primary">+{effect.points}</div>
+                  <div className="text-xl font-bold text-primary shadow-[0_0_10px_rgba(0,0,0,0.5)]">+{effect.points}</div>
                 ) : effect.type === "penalty" ? (
-                  <div className="text-xl font-bold text-destructive">{effect.points}</div>
+                  <div className="text-xl font-bold text-destructive shadow-[0_0_10px_rgba(0,0,0,0.5)]">{effect.points}</div>
                 ) : effect.type === "achievement" ? (
-                  <div className="text-xl font-bold text-primary bg-black/30 px-3 py-1 rounded-full">
+                  <div className="text-xl font-bold text-primary bg-black/30 px-3 py-1 rounded-full shadow-[0_0_10px_rgba(0,0,0,0.5)]">
                     +{effect.points} BONUS!
                   </div>
                 ) : (
-                  <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
+                  <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.5)]">
                     {effect.type === "mic" ? (
                       <Mic className="w-8 h-8 text-black" />
                     ) : (

@@ -10,6 +10,7 @@ import { DropGame } from "./drop-game"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface ClickerViewProps {
   gameState: GameState
@@ -23,6 +24,8 @@ export function ClickerView({ gameState }: ClickerViewProps) {
   const clickerRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [coinSize, setCoinSize] = useState(180) // Default size
+  const [activeTouches, setActiveTouches] = useState<Record<string, boolean>>({})
+  const isMobile = useIsMobile()
 
   // Resize the coin based on window size
   useEffect(() => {
@@ -41,6 +44,7 @@ export function ClickerView({ gameState }: ClickerViewProps) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Handle mouse click
   const handleClick = (e: React.MouseEvent) => {
     if (canClick && gameState.energy >= 1) {
       const rect = e.currentTarget.getBoundingClientRect()
@@ -50,7 +54,7 @@ export function ClickerView({ gameState }: ClickerViewProps) {
       // Calculate earned coins (integer values)
       const earnedCoins = Math.floor(gameState.coinsPerClick);
       
-      // Position the effect relative to click position - FIX: Show effect right at click position
+      // Position the effect relative to click position
       const newEffect = { id: Date.now(), x, y, amount: earnedCoins }
       setClickEffect((prev) => [...prev, newEffect])
 
@@ -73,9 +77,85 @@ export function ClickerView({ gameState }: ClickerViewProps) {
       
       setTimeout(() => {
         setCanClick(true)
-      }, 200)
+      }, 100) // Reduced cooldown for better responsiveness
     }
   }
+
+  // Handle touch events for multi-touch support
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault(); // Prevent default touch behavior
+    
+    if (!canClick || gameState.energy < 1) return;
+    
+    // Process each touch point
+    for (let i = 0; i < e.touches.length; i++) {
+      const touch = e.touches[i];
+      const touchId = touch.identifier.toString();
+      
+      // If this touch is not already being tracked
+      if (!activeTouches[touchId]) {
+        const newTouches = {...activeTouches};
+        newTouches[touchId] = true;
+        setActiveTouches(newTouches);
+        
+        // Get touch position relative to target element
+        if (clickerRef.current) {
+          const rect = clickerRef.current.getBoundingClientRect();
+          const x = touch.clientX - rect.left;
+          const y = touch.clientY - rect.top;
+          
+          // Process the click
+          processClick(x, y);
+        }
+      }
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    
+    // Clear ended touches
+    const newTouches = {...activeTouches};
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      const touch = e.changedTouches[i];
+      delete newTouches[touch.identifier.toString()];
+    }
+    
+    setActiveTouches(newTouches);
+  };
+
+  const handleTouchCancel = (e: React.TouchEvent) => {
+    e.preventDefault();
+    setActiveTouches({}); // Clear all touches on cancel
+  };
+
+  // Function to process a click at a given position
+  const processClick = (x: number, y: number) => {
+    if (gameState.energy >= 1) {
+      // Calculate earned coins (integer values)
+      const earnedCoins = Math.floor(gameState.coinsPerClick);
+      
+      // Create click effect
+      const newEffect = { id: Date.now() + Math.random(), x, y, amount: earnedCoins };
+      setClickEffect((prev) => [...prev, newEffect]);
+      
+      setTimeout(() => {
+        setClickEffect((prev) => prev.filter((effect) => effect.id !== newEffect.id));
+      }, 1000);
+      
+      gameState.addCoins(earnedCoins);
+      gameState.totalClicks += 1;
+      gameState.useEnergy(1);
+      
+      // Visual feedback
+      if (clickerRef.current) {
+        clickerRef.current.classList.add('scale-95');
+        setTimeout(() => {
+          if (clickerRef.current) clickerRef.current.classList.remove('scale-95');
+        }, 100);
+      }
+    }
+  };
 
   useEffect(() => {
     const updateTimeUntilNextGame = () => {
@@ -97,10 +177,8 @@ export function ClickerView({ gameState }: ClickerViewProps) {
 
   return (
     <div ref={containerRef} className="flex flex-col items-center justify-start h-full">
-      {/* Changed to left-aligned h2 title like other sections */}
       <div className="mb-4 w-full">
-        <h2 className="text-2xl font-bold mb-1 text-primary">Earn $KNYE</h2>
-        <p className="text-muted-foreground">Click the coin to mine cryptocurrency</p>
+        <h2 className="text-2xl font-bold mb-1 text-primary">Earn</h2>
       </div>
       
       <div className="relative mb-6 mt-2 flex justify-center w-full">
@@ -110,6 +188,9 @@ export function ClickerView({ gameState }: ClickerViewProps) {
           style={{ width: `${coinSize}px`, height: `${coinSize}px` }}
           whileHover={{ scale: 1.05 }}
           onClick={handleClick}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchCancel}
         >
           <Image
             src="/knye.jpg"
@@ -130,11 +211,15 @@ export function ClickerView({ gameState }: ClickerViewProps) {
           {clickEffect.map((effect) => (
             <motion.div
               key={effect.id}
-              initial={{ opacity: 1, scale: 0.8, x: effect.x, y: effect.y }} // Fixed position to be directly on click point
-              animate={{ opacity: 0, scale: 1.2, y: effect.y - 30 }} // Only animate slightly upward
+              initial={{ opacity: 1, scale: 0.8, x: effect.x, y: effect.y }}
+              animate={{ opacity: 0, scale: 1.2, y: effect.y - 30 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.8 }}
               className="absolute text-primary font-bold pointer-events-none z-20 text-lg"
+              style={{ 
+                // Add black shadow for soft glow effect
+                textShadow: '0 0 5px rgba(0,0,0,0.5), 0 0 10px rgba(0,0,0,0.3)'
+              }}
             >
               +{effect.amount}
             </motion.div>

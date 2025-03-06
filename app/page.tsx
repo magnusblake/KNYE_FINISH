@@ -82,10 +82,10 @@ function GameContent() {
   }
 
   return (
-    <main className="min-h-svh max-h-svh bg-background text-foreground overflow-hidden relative">
+    <main className="min-h-svh max-h-svh bg-background text-foreground overflow-hidden relative flex flex-col">
       <GameHeader gameState={gameState} />
 
-      <div className="container mx-auto px-4 pb-20 pt-4 h-[calc(100vh-160px)] overflow-y-auto scrollbar-hide">
+      <div className="container mx-auto px-4 flex-1 overflow-y-auto scrollbar-hide">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -93,6 +93,7 @@ function GameContent() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
+            className="h-full pb-14"
           >
             {activeTab === "clicker" && (
               <ClickerView gameState={gameState} />
@@ -100,7 +101,7 @@ function GameContent() {
             {activeTab === "upgrades" && <UpgradesView gameState={gameState} />}
             {activeTab === "wallet" && <WalletView gameState={gameState} />}
             {activeTab === "social" && (
-              <>
+              <div className="h-full flex flex-col gap-2">
                 <DailyBonus gameState={gameState} />
                 <Leaderboard />
                 <ReferralProgram 
@@ -108,7 +109,7 @@ function GameContent() {
                   telegramUsername={user.username || undefined}
                 />
                 <Tasks gameState={gameState} />
-              </>
+              </div>
             )}
             {activeTab === "stats" && <StatsView gameState={gameState} />}
           </motion.div>

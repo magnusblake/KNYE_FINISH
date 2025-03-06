@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils"
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "$KNYE — Kanye West TON Mining Game",
-  description: "Mine $KNYE coins on the TON network with this Kanye West themed clicker game",
+  title: "$KNYE — Kanye West Mining Game",
+  description: "Mine $KNYE coins with this Kanye West themed clicker game",
     generator: '$KNYE'
 }
 

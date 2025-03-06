@@ -1,17 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronLeft, ChevronRight, ArrowRight, Disc3, Coins, Rocket, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface OnboardingProps {
-  onComplete: () => void
-  userName?: string | null
+  onClose: () => void
+  username?: string | null
 }
 
-export function OnboardingSlides({ onComplete, userName }: OnboardingProps) {
+export function OnboardingSlides({ onClose, username }: OnboardingProps) {
   const [currentSlide, setCurrentSlide] = useState(0)
+  const touchStartX = useRef(0)
+  const touchEndX = useRef(0)
   
   const slides = [
     {
@@ -20,7 +22,7 @@ export function OnboardingSlides({ onComplete, userName }: OnboardingProps) {
       content: (
         <>
           <h2 className="text-2xl font-bold text-primary mb-4">
-            {userName ? `Welcome, ${userName}!` : "Welcome to $KNYE!"}
+            {username ? `Welcome, ${username}!` : "Welcome to $KNYE!"}
           </h2>
           <p className="text-muted-foreground mb-4">
             $KNYE is the ultimate mining game on TON. Click to earn tokens, upgrade your mining power, and build wealth on the blockchain.
@@ -79,7 +81,7 @@ export function OnboardingSlides({ onComplete, userName }: OnboardingProps) {
             Invite friends to earn referral bonuses and climb the leaderboard!
           </p>
           <Button 
-            onClick={onComplete} 
+            onClick={() => onClose()} 
             className="w-full bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center gap-2"
           >
             Start Mining Now
@@ -95,7 +97,7 @@ export function OnboardingSlides({ onComplete, userName }: OnboardingProps) {
     if (currentSlide < slides.length - 1) {
       setCurrentSlide(prev => prev + 1)
     } else {
-      onComplete()
+      onClose()
     }
   }
 
@@ -104,9 +106,32 @@ export function OnboardingSlides({ onComplete, userName }: OnboardingProps) {
       setCurrentSlide(prev => prev - 1)
     }
   }
+  
+  // Handle touch events for swiping
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+  }
+  
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX
+  }
+  
+  const handleTouchEnd = () => {
+    const diff = touchStartX.current - touchEndX.current
+    if (diff > 50) { // Swipe left - go to next slide
+      nextSlide()
+    } else if (diff < -50) { // Swipe right - go to previous slide
+      prevSlide()
+    }
+  }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       <div className="absolute inset-0 flex items-center justify-center">
         <AnimatePresence mode="wait">
           <motion.div
@@ -158,28 +183,22 @@ export function OnboardingSlides({ onComplete, userName }: OnboardingProps) {
             ))}
           </div>
           
-          {currentSlide < slides.length - 1 ? (
-            <Button
-              variant="ghost"
-              onClick={nextSlide}
-              className="text-primary"
-            >
+          <Button
+            variant="ghost"
+            onClick={nextSlide}
+            className="text-primary"
+          >
+            {currentSlide < slides.length - 1 ? (
               <ChevronRight className="w-6 h-6" />
-            </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              onClick={onComplete}
-              className="text-primary"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </Button>
-          )}
+            ) : (
+              <ArrowRight className="w-6 h-6" />
+            )}
+          </Button>
         </div>
         
         <Button
           variant="ghost"
-          onClick={onComplete}
+          onClick={onClose}
           className="absolute top-2 right-2 text-muted-foreground text-xs"
         >
           Skip

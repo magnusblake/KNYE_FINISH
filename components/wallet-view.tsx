@@ -32,7 +32,7 @@ export function WalletView({ gameState }: WalletViewProps) {
   const { tg, showAlert, showConfirm } = useTelegram()
 
   // Define conversion rate
-  const KNYE_TO_USD_RATE = 0.00025; // 1 KNYE = $0.00025
+  const KNYE_TO_USD_RATE = 0.0025; // 1 KNYE = $0.00025
 
   const MIN_WITHDRAWAL = 10000
 

@@ -54,14 +54,14 @@ export function StatsView({ gameState }: StatsViewProps) {
   }, [gameState.achievements])
 
   return (
-    <div className="py-6">
-      <div className="mb-6">
+    <div className="py-2">
+      <div className="mb-4">
         <h2 className="text-2xl font-bold mb-1 text-primary">Your Stats</h2>
         <p className="text-muted-foreground">Track your $KNYE mining progress</p>
       </div>
       
       {/* Level progress */}
-      <Card className="mb-6 bg-secondary border-none">
+      <Card className="mb-4 bg-secondary border-none">
         <CardContent className="pt-6">
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center gap-2">
@@ -70,7 +70,7 @@ export function StatsView({ gameState }: StatsViewProps) {
             </div>
             <span className="text-muted-foreground text-sm">{gameState.experience} / {xpForCurrentLevel} XP</span>
           </div>
-          <Progress value={xpProgress} className="h-2 mb-1" />
+          <Progress value={xpProgress} className="h-2 mb-1 bg-accent" />
           <p className="text-xs text-muted-foreground text-right">
             {Math.floor(xpForCurrentLevel - gameState.experience)} XP until level {gameState.level + 1}
           </p>
@@ -132,8 +132,8 @@ export function StatsView({ gameState }: StatsViewProps) {
             <StatCard
               icon={<Target className="w-6 h-6" />}
               title="Best Performance"
-              value={`${gameState.stats.highestCombo}x combo`}
-              subtext={`${clicksPerSecond.toFixed(1)} clicks per second avg`}
+              value={`${clicksPerSecond.toFixed(1)} clicks/sec`}
+              subtext={`Efficiency: ${Math.floor(clicksPerSecond * gameState.coinsPerClick)} coins/sec`}
             />
             
             {gameState.prestigeLevel > 0 && (

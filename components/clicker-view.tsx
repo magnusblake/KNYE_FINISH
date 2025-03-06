@@ -20,11 +20,26 @@ export function ClickerView({ gameState }: ClickerViewProps) {
   const [isDropGameOpen, setIsDropGameOpen] = useState(false)
   const [timeUntilNextGame, setTimeUntilNextGame] = useState<string | null>(null)
   const [canClick, setCanClick] = useState(true)
-  const [clickStreak, setClickStreak] = useState(0)
-  const [lastClickTime, setLastClickTime] = useState(0)
-  const [comboMultiplier, setComboMultiplier] = useState(1)
-  const [showComboText, setShowComboText] = useState(false)
   const clickerRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [coinSize, setCoinSize] = useState(180) // Default size
+
+  // Resize the coin based on window size
+  useEffect(() => {
+    const handleResize = () => {
+      if (containerRef.current) {
+        const containerHeight = containerRef.current.clientHeight;
+        // Calculate appropriate size based on container height
+        const calculatedSize = Math.min(180, containerHeight * 0.4);
+        setCoinSize(Math.max(120, calculatedSize)); // Min size of 120px
+      }
+    };
+
+    handleResize(); // Calculate on initial render
+    window.addEventListener('resize', handleResize);
+    
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleClick = (e: React.MouseEvent) => {
     if (canClick && gameState.energy >= 1) {
@@ -32,30 +47,8 @@ export function ClickerView({ gameState }: ClickerViewProps) {
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
 
-      const now = Date.now()
-      const timeSinceLastClick = now - lastClickTime
-      
-      // Combo system - fast consecutive clicks increase multiplier
-      if (timeSinceLastClick < 500) {
-        setClickStreak(prev => {
-          const newStreak = prev + 1;
-          // Every 5 consecutive clicks increases the multiplier
-          if (newStreak % 5 === 0 && newStreak <= 25) {
-            setComboMultiplier(Math.floor(1 + (newStreak / 25)));
-            setShowComboText(true);
-            setTimeout(() => setShowComboText(false), 1000);
-          }
-          return newStreak;
-        });
-      } else {
-        setClickStreak(1);
-        setComboMultiplier(1);
-      }
-      
-      setLastClickTime(now);
-
-      // Calculate earned coins with combo multiplier (integer values)
-      const earnedCoins = Math.floor(gameState.coinsPerClick * comboMultiplier);
+      // Calculate earned coins (integer values)
+      const earnedCoins = Math.floor(gameState.coinsPerClick);
       
       // Position the effect relative to click position
       const newEffect = { id: Date.now(), x, y, amount: earnedCoins }
@@ -103,30 +96,20 @@ export function ClickerView({ gameState }: ClickerViewProps) {
   }, [gameState.lastDropGameTimestamp])
 
   return (
-    <div className="flex flex-col items-center justify-center py-4 relative">
-      {showComboText && (
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          className="absolute top-44 text-primary font-bold text-xl"
-        >
-          COMBO x{comboMultiplier}!
-        </motion.div>
-      )}
-
-      <div className="relative mb-6">
+    <div ref={containerRef} className="flex flex-col items-center justify-start h-full">
+      <div className="relative mb-6 mt-4">
         <motion.div
           ref={clickerRef}
-          className="relative z-10 w-48 h-48 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg cursor-pointer overflow-hidden transition-transform duration-100"
+          className="relative z-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg cursor-pointer overflow-hidden transition-transform duration-100"
+          style={{ width: `${coinSize}px`, height: `${coinSize}px` }}
           whileHover={{ scale: 1.05 }}
           onClick={handleClick}
         >
           <Image
             src="/api/placeholder/180/180"
             alt="Kanye West"
-            width={180}
-            height={180}
+            width={coinSize}
+            height={coinSize}
             className="w-full h-full object-cover rounded-full"
           />
           <motion.div
@@ -153,7 +136,7 @@ export function ClickerView({ gameState }: ClickerViewProps) {
         </AnimatePresence>
       </div>
 
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md mb-6">
         <CardHeader>
           <CardTitle className="flex items-center">
             <Gamepad2 className="w-6 h-6 mr-2 text-primary" />
@@ -176,8 +159,8 @@ export function ClickerView({ gameState }: ClickerViewProps) {
         </CardContent>
       </Card>
 
-      {/* Social links below Drop Game */}
-      <div className="mt-6 flex justify-center gap-8">
+      {/* Social links */}
+      <div className="mt-auto mb-6 flex justify-center gap-8">
         <Link
           href="https://example.com"
           target="_blank"
@@ -199,7 +182,7 @@ export function ClickerView({ gameState }: ClickerViewProps) {
         </Link>
       </div>
 
-      {/* Drop Game Modal - mounted conditionally with AnimatePresence to prevent flickering */}
+      {/* Drop Game Modal */}
       <AnimatePresence>
         {isDropGameOpen && (
           <DropGame

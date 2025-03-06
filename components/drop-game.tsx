@@ -28,8 +28,6 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
   const [score, setScore] = useState(0)
   const [timeLeft, setTimeLeft] = useState(60)
   const gameAreaRef = useRef<HTMLDivElement>(null)
-  const [combo, setCombo] = useState(0)
-  const [lastCatchTime, setLastCatchTime] = useState(0)
   const [clickEffects, setClickEffects] = useState<{ id: number; x: number; y: number; type: string; points?: number }[]>([])
   const [spawnRate, setSpawnRate] = useState(600) // Slower spawn rate
   const [level, setLevel] = useState(1)
@@ -46,7 +44,6 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
 
   // Achievements for the drop game
   const [achievements, setAchievements] = useState({
-    catchStreak10: false,
     score5000: false,
     level3: false
   })
@@ -144,13 +141,11 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
       setScore(0)
       setTimeLeft(60)
       setItems([])
-      setCombo(0)
       setMultiplier(1)
       setLevel(1)
       setSpawnRate(600)
       gameState.setLastDropGameTimestamp(Date.now())
       setAchievements({
-        catchStreak10: false,
         score5000: false,
         level3: false
       })
@@ -174,7 +169,6 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
         // Increased bomb penalty - ensure it's an integer
         const penalty = Math.min(700, Math.floor(score * 0.2));
         setScore(prev => Math.max(0, prev - penalty));
-        setCombo(0)
         setMultiplier(1)
         
         // Visual feedback
@@ -186,45 +180,6 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
           points: -Math.floor(penalty)
         }])
       } else {
-        const now = Date.now()
-        // If catches happen within 1.5 seconds, increase combo
-        if (now - lastCatchTime < 1500) {
-          setCombo((prev) => {
-            const newCombo = prev + 1;
-            // Check for combo achievement
-            if (newCombo >= 10 && !achievements.catchStreak10) {
-              setAchievements(prev => ({...prev, catchStreak10: true}))
-              // Add bonus points for achievement
-              setScore(prev => prev + 500)
-              setClickEffects(prev => [...prev, {
-                id: Date.now(),
-                x: item.x,
-                y: item.y - 60,
-                type: "achievement",
-                points: 500
-              }])
-            }
-            
-            // Increase multiplier every 8 combos (more difficult)
-            if (newCombo % 8 === 0 && multiplier < 2) {
-              setMultiplier(prev => {
-                const newMultiplier = Math.min(2, Math.floor(prev + 0.25));
-                setShowMultiplierEffect(true)
-                setTimeout(() => setShowMultiplierEffect(false), 2000)
-                return newMultiplier;
-              })
-            }
-            
-            return newCombo;
-          })
-        } else {
-          setCombo(1)
-          if (multiplier > 1) {
-            setMultiplier(prev => Math.max(1, Math.floor(prev - 0.25)))
-          }
-        }
-        setLastCatchTime(now)
-      
         // Reduced point values - all integers
         let itemPoints = 0;
         if (item.type === "mic") {
@@ -235,9 +190,7 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
           itemPoints = 50;
         }
         
-        // Reduced combo bonus (less reward for combos) - ensure integer values
-        const comboBonus = Math.min(combo, 10) / 4;
-        const totalPoints = Math.floor((itemPoints + comboBonus) * multiplier);
+        const totalPoints = Math.floor(itemPoints * multiplier);
         
         setScore((prev) => prev + totalPoints)
         
@@ -253,7 +206,7 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
       
       setItems((prev) => prev.filter((i) => i.id !== item.id))
     },
-    [combo, lastCatchTime, multiplier, score, achievements, level]
+    [multiplier, score]
   )
 
   // Reduced reward ratio: now 8 $KNYE per point instead of 10
@@ -317,20 +270,16 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
                 <div className="bg-accent p-4 rounded-lg mb-4">
                   <p className="text-lg text-foreground mb-2">Score: <span className="text-primary font-bold">{score}</span></p>
                   <p className="text-lg text-foreground mb-2">Level: <span className="text-primary font-bold">{level}</span></p>
-                  <p className="text-lg text-foreground mb-4">Best Combo: <span className="text-primary font-bold">x{Math.min(combo, 10)}</span></p>
                   <p className="text-xl text-foreground">You earned: <span className="text-primary font-bold">{earnedCoins} $KNYE</span></p>
                 </div>
                 
-                {(achievements.catchStreak10 || achievements.score5000 || achievements.level3) && (
+                {(achievements.score5000 || achievements.level3) && (
                   <div className="mt-4 mb-6">
                     <h3 className="text-primary font-bold mb-2 flex items-center justify-center">
                       <Award className="w-5 h-5 mr-2" />
                       Achievements Unlocked!
                     </h3>
                     <div className="flex flex-col gap-2">
-                      {achievements.catchStreak10 && (
-                        <div className="text-sm text-foreground">Combo Master (10x combo streak)</div>
-                      )}
                       {achievements.score5000 && (
                         <div className="text-sm text-foreground">High Roller (5,000+ score)</div>
                       )}
@@ -393,7 +342,7 @@ export function DropGame({ gameState, onClose }: DropGameProps) {
             
             <div className="flex items-center">
               <Target className="w-5 h-5 mr-2 text-primary" />
-              <span className="text-lg text-foreground">{Math.min(combo, 10)}x</span>
+              <span className="text-lg text-foreground">Level {level}</span>
             </div>
           </div>
           

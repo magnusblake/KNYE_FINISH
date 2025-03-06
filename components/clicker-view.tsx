@@ -46,38 +46,47 @@ export function ClickerView({ gameState }: ClickerViewProps) {
 
   // Handle mouse click
   const handleClick = (e: React.MouseEvent) => {
+    // First check if we have enough energy
     if (canClick && gameState.energy >= 1) {
-      const rect = e.currentTarget.getBoundingClientRect()
-      const x = e.clientX - rect.left
-      const y = e.clientY - rect.top
-
-      // Calculate earned coins (integer values)
-      const earnedCoins = Math.floor(gameState.coinsPerClick);
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+  
+      // Use energy before calculating coins to ensure we don't give coins if energy is depleted
+      const energyUsed = gameState.useEnergy(1);
       
-      // Position the effect relative to click position
-      const newEffect = { id: Date.now(), x, y, amount: earnedCoins }
-      setClickEffect((prev) => [...prev, newEffect])
-
-      setTimeout(() => {
-        setClickEffect((prev) => prev.filter((effect) => effect.id !== newEffect.id))
-      }, 1000)
-
-      gameState.addCoins(earnedCoins)
-      gameState.totalClicks += 1 // Directly increment total clicks
-      setCanClick(false)
-      gameState.useEnergy(1) // Use 1 energy per click
-      
-      // Visual feedback - make the clicker element pulse
-      if (clickerRef.current) {
-        clickerRef.current.classList.add('scale-95');
+      if (energyUsed) {
+        // Calculate earned coins (ensure integer values)
+        const earnedCoins = Math.floor(gameState.coinsPerClick);
+        
+        // Position the effect relative to click position
+        const newEffect = { id: Date.now(), x, y, amount: earnedCoins };
+        setClickEffect((prev) => [...prev, newEffect]);
+  
         setTimeout(() => {
-          if (clickerRef.current) clickerRef.current.classList.remove('scale-95');
-        }, 100);
+          setClickEffect((prev) => prev.filter((effect) => effect.id !== newEffect.id));
+        }, 1000);
+  
+        gameState.addCoins(earnedCoins);
+        gameState.totalClicks += 1; // Directly increment total clicks
+        
+        // Update stats
+        gameState.updateStat('totalClicksAllTime', 1);
+        
+        // Visual feedback - make the clicker element pulse
+        if (clickerRef.current) {
+          clickerRef.current.classList.add('scale-95');
+          setTimeout(() => {
+            if (clickerRef.current) clickerRef.current.classList.remove('scale-95');
+          }, 100);
+        }
+        
+        // Only lock clicking briefly for visual feedback, not tied to energy
+        setCanClick(false);
+        setTimeout(() => {
+          setCanClick(true);
+        }, 100); // Reduced cooldown for better responsiveness
       }
-      
-      setTimeout(() => {
-        setCanClick(true)
-      }, 100) // Reduced cooldown for better responsiveness
     }
   }
 

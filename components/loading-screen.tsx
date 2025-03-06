@@ -5,6 +5,7 @@ import { motion } from "framer-motion"
 
 export function LoadingScreen() {
   const [loadingText, setLoadingText] = useState("Loading")
+  const [loadingProgress, setLoadingProgress] = useState(0)
   
   // Animate loading dots
   useEffect(() => {
@@ -20,6 +21,19 @@ export function LoadingScreen() {
     return () => clearInterval(interval)
   }, [])
   
+  // Simulate loading progress
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoadingProgress(prev => {
+        // Slow down progress as it gets higher to make it seem more realistic
+        const increment = Math.max(1, 10 - Math.floor(prev / 10))
+        return Math.min(99, prev + increment)
+      })
+    }, 100)
+    
+    return () => clearTimeout(timer)
+  }, [loadingProgress])
+  
   return (
     <div className="fixed inset-0 bg-background flex flex-col items-center justify-center z-50">
       <motion.div
@@ -33,8 +47,18 @@ export function LoadingScreen() {
         <p className="text-muted-foreground">{loadingText}</p>
       </div>
       
+      {/* Loading progress bar */}
+      <div className="w-48 h-1 bg-muted mt-6 rounded-full overflow-hidden">
+        <motion.div 
+          className="h-full bg-primary"
+          initial={{ width: "0%" }}
+          animate={{ width: `${loadingProgress}%` }}
+          transition={{ ease: "easeInOut" }}
+        />
+      </div>
+      
       <div className="absolute bottom-8 left-0 right-0 text-center text-xs text-muted-foreground">
-        <p>Syncing...</p>
+        <p>Connecting to Telegram...</p>
       </div>
     </div>
   )

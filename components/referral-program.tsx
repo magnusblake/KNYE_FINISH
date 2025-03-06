@@ -4,7 +4,7 @@ import { useState } from "react"
 import type { GameState } from "@/hooks/useGameState"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Users, Copy, CheckCircle, Share2, ExternalLink } from "lucide-react"
+import { Users, Copy, CheckCircle, Share2 } from "lucide-react"
 import { useTelegram } from "@/hooks/useTelegram"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 
@@ -16,14 +16,15 @@ interface ReferralProgramProps {
 export function ReferralProgram({ gameState, telegramUsername }: ReferralProgramProps) {
   const [referralCode, setReferralCode] = useState("")
   const [copied, setCopied] = useState(false)
-  const { tg } = useTelegram()
+  const { tg, user, shareUrl } = useTelegram()
   
   // Generate referral code based on Telegram username or ID
   const myReferralCode = telegramUsername || 
     (gameState.userId ? `user${gameState.userId}` : "KNYE_USER")
   
-  // Full referral link
-  const referralLink = `https://t.me/KnyeClickerBot?start=${myReferralCode}`
+  // Full referral link - use actual bot username in production
+  const botUsername = "knyecoinbot" // Replace with your actual bot username
+  const referralLink = `https://t.me/${botUsername}?start=${myReferralCode}`
 
   const handleCopyReferralCode = () => {
     navigator.clipboard.writeText(referralLink)
@@ -33,24 +34,18 @@ export function ReferralProgram({ gameState, telegramUsername }: ReferralProgram
   
   // Function for sharing through Telegram
   const handleShare = () => {
-    if (tg && tg.shareUrl) {
-      tg.shareUrl(referralLink)
-    } else {
-      // Fallback for use outside Telegram
-      if (navigator.share) {
-        navigator.share({
-          title: '$KNYE Clicker',
-          text: 'Join the $KNYE Clicker game and get a bonus with my referral link!',
-          url: referralLink
-        })
-      } else {
-        handleCopyReferralCode()
-      }
-    }
+    // Use our improved shareUrl function
+    shareUrl(referralLink)
   }
 
   const handleSubmitReferralCode = () => {
     if (referralCode.trim() !== "") {
+      // Don't allow users to enter their own referral code
+      if (referralCode === myReferralCode) {
+        tg?.showAlert("You cannot use your own referral code!")
+        return
+      }
+      
       gameState.addReferral(referralCode)
       setReferralCode("")
     }

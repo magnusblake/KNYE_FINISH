@@ -16,14 +16,29 @@ import { GameHeader } from "@/components/game-header"
 import { TelegramProvider, useTelegram } from "@/hooks/useTelegram"
 import { LoadingScreen } from "@/components/loading-screen"
 import { OnboardingSlides } from "@/components/onboarding-slides"
+import { DesktopBlocker } from "@/components/desktop-blocker"
 
 // Main component wrapper with Telegram Provider
 export default function HomePage() {
   return (
     <TelegramProvider>
-      <GameContent />
+      <GameWrapper />
     </TelegramProvider>
   )
+}
+
+// Intermediate component to check Telegram status
+function GameWrapper() {
+  const { isReady, isInTelegram } = useTelegram()
+  const isMounted = useClientMounted()
+  
+  // Show loading screen while we're determining Telegram status
+  if (!isReady || !isMounted) {
+    return <LoadingScreen />
+  }
+  
+  // Desktop Blocker will handle the appropriate checks
+  return <GameContent />
 }
 
 // Game content with Telegram integration
@@ -75,11 +90,6 @@ function GameContent() {
       }
     }
   }, [activeTab, tg])
-
-  // Show loading screen until Telegram WebApp is ready
-  if (!isReady) {
-    return <LoadingScreen />
-  }
 
   return (
     <main className="min-h-svh max-h-svh bg-background text-foreground overflow-hidden relative flex flex-col">
@@ -133,6 +143,20 @@ function GameContent() {
           username={user.firstName || user.username}
         />
       )}
+      
+      {/* Desktop Blocker will show if not Telegram or not mobile */}
+      <DesktopBlocker />
     </main>
   )
+}
+
+// Custom hook to ensure client-side rendering
+function useClientMounted() {
+  const [mounted, setMounted] = useState(false)
+  
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+  
+  return mounted
 }

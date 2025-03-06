@@ -633,12 +633,20 @@ export function useGameState(): GameState {
   // Energy regeneration
   useEffect(() => {
     const energyTimer = setInterval(() => {
-      setEnergy((prev) => Math.min(Math.floor(prev + energyRegenRate), maxEnergy))
-      setIsDataSynced(false)
-    }, 1000)
-
-    return () => clearInterval(energyTimer)
-  }, [energyRegenRate, maxEnergy])
+      setEnergy((prev) => {
+        // Make sure we only regenerate if not already at max
+        if (prev < maxEnergy) {
+          // Apply the energyRegenRate but ensure we get integer values
+          const newEnergy = Math.min(Math.floor(prev + energyRegenRate), maxEnergy);
+          setIsDataSynced(false);
+          return newEnergy;
+        }
+        return prev;
+      });
+    }, 1000);
+  
+    return () => clearInterval(energyTimer);
+  }, [energyRegenRate, maxEnergy]);
 
   // Track play time
   useEffect(() => {
@@ -866,12 +874,19 @@ export function useGameState(): GameState {
 
   // Energy usage function
   const useEnergy = (amount: number) => {
-    if (energy >= amount) {
-      setEnergy((prev) => Math.floor(prev - amount));
-      setIsDataSynced(false)
-      return true
+    // Ensure amount is an integer
+    const energyAmount = Math.floor(amount);
+    
+    // Check if we have enough energy
+    if (energy >= energyAmount) {
+      setEnergy((prev) => {
+        const newEnergy = Math.max(0, Math.floor(prev - energyAmount));
+        setIsDataSynced(false);
+        return newEnergy;
+      });
+      return true;
     }
-    return false
+    return false;
   }
 
   // Add experience function
